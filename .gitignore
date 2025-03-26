@@ -1,0 +1,27 @@
+# LÖVE specific
+*.love
+*.zip
+*.tar.gz
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build specific
+build/
+dist/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs
+*.log 
