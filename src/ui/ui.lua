@@ -10,8 +10,11 @@ local config = {
     healthBarHeight = 20
 }
 
-function UI.new()
+function UI.new(player)
     local self = setmetatable({}, UI)
+    
+    -- Player whose stats the HUD shows
+    self.player = player
     
     -- UI state
     self.showInventory = false
@@ -77,20 +80,39 @@ function UI:drawHUD()
     -- Save current color
     local r, g, b, a = love.graphics.getColor()
     
-    -- Draw health bar
-    love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("fill", config.padding, config.padding, config.healthBarWidth, config.healthBarHeight)
-    
-    -- Draw shield bar
-    love.graphics.setColor(0, 0, 1)
-    love.graphics.rectangle("fill", config.padding, config.padding + config.healthBarHeight + 5, config.healthBarWidth, config.healthBarHeight)
-    
-    -- Draw weapon info
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Weapon: Laser Pistol", config.padding, config.padding + config.healthBarHeight * 2 + 10)
+    local p = self.player
+    if p then
+        local x, y = config.padding, config.padding
+        local w, h = config.healthBarWidth, config.healthBarHeight
+        local step = h + 5
+        
+        self:drawBar(x, y, w, h, p.health / p.maxHealth, {1, 0, 0})
+        self:drawBar(x, y + step, w, h, p.shield / p.maxShield, {0, 0, 1})
+        self:drawBar(x, y + step * 2, w, h, p.energy / p.maxEnergy, {0, 1, 1})
+        
+        -- Draw weapon info
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.print("Weapon: " .. p.weapons[p.currentWeapon].name, x, y + step * 3 + 5)
+    end
     
     -- Restore color
     love.graphics.setColor(r, g, b, a)
+end
+
+function UI:drawBar(x, y, w, h, fraction, color)
+    fraction = math.max(0, math.min(1, fraction))
+    
+    -- Background
+    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+    love.graphics.rectangle("fill", x, y, w, h)
+    
+    -- Fill
+    love.graphics.setColor(color)
+    love.graphics.rectangle("fill", x, y, w * fraction, h)
+    
+    -- Outline
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", x, y, w, h)
 end
 
 function UI:drawInventory()

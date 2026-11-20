@@ -51,7 +51,7 @@ function initializeGame()
     world:addEntity(player)
     
     -- Create UI
-    ui = UI.new()
+    ui = UI.new(player)
 end
 
 -- Update game state
@@ -185,6 +185,6 @@ end
 
 -- Draw paused state
 function drawPaused()
-    -- Draw pause menu
-    ui:draw()
+    -- Draw the frozen game behind the pause menu (ui:draw renders the menu overlay)
+    drawGame()
 end 

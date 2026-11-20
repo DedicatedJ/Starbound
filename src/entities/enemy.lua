@@ -138,6 +138,31 @@ function Enemy:update(dt)
     
     -- Update AI behavior
     self:updateAI(dt)
+    
+    -- Apply movement
+    self.x = self.x + self.velocity.x * dt
+    self.y = self.y + self.velocity.y * dt
+end
+
+function Enemy:setTarget(target)
+    self.target = target
+end
+
+function Enemy:canAttack()
+    if self.isDead or not self.target or self.attackTimer > 0 then
+        return false
+    end
+    local dx = self.target.x - self.x
+    local dy = self.target.y - self.y
+    return dx * dx + dy * dy <= self.attackRange * self.attackRange
+end
+
+function Enemy:performAttack()
+    if self.target.takeDamage then
+        self.target:takeDamage(self.damage)
+    end
+    self.attackTimer = self.attackCooldown
+    self:addEffect("attack", self.target.x, self.target.y)
 end
 
 function Enemy:updateAI(dt)
@@ -164,7 +189,7 @@ function Enemy:updateAI(dt)
     elseif self.state == "chase" then
         self:chase(dt)
     elseif self.state == "attack" then
-        self:attack(dt)
+        self:attackState(dt)
     elseif self.state == "retreat" then
         self:retreat(dt)
     end
@@ -214,13 +239,13 @@ function Enemy:chase(dt)
     end
 end
 
-function Enemy:attack(dt)
+function Enemy:attackState(dt)
     -- Stop moving when in attack range
     self.velocity.x = 0
     self.velocity.y = 0
     
     if self:canAttack() then
-        self:attack(self.target)
+        self:performAttack()
     end
 end
 
@@ -286,10 +311,13 @@ function Enemy:draw()
     
     -- Draw effects
     for _, effect in ipairs(self.effects) do
+        local alpha = effect.lifetime / 0.2
         if effect.type == "hit" then
-            local alpha = effect.lifetime / 0.2
             love.graphics.setColor(1, 0, 0, alpha)
             love.graphics.circle("line", effect.x, effect.y, 20)
+        elseif effect.type == "attack" then
+            love.graphics.setColor(1, 0.3, 0.3, alpha)
+            love.graphics.line(self.x, self.y, effect.x, effect.y)
         end
     end
     
