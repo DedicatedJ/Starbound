@@ -18,7 +18,7 @@ local config = {
             },
             {
                 type = "message",
-                text = "Use WASD to move and the mouse to aim. Left click to fire your weapon.",
+                text = "Use WASD or the arrow keys to move and the mouse to aim. Left click to fire.",
                 duration = 5
             },
             {
@@ -45,12 +45,13 @@ local config = {
                 type = "spawn",
                 enemyType = "ALIEN_WILDLIFE",
                 count = 3,
-                radius = 200
+                radius = 200,
+                text = "Defeat these enemies to complete the tutorial!"
             },
             {
                 type = "message",
-                text = "Defeat these enemies to complete the tutorial!",
-                duration = 10
+                text = "Tutorial complete! Good luck out there.",
+                duration = 4
             }
         },
         currentStep = 1,
@@ -283,27 +284,30 @@ function World:checkCombat()
     local player = self:findPlayer()
     if not player then return end
     
-    -- Check player projectiles against enemies
+    -- Check every player projectile against enemies
     for i = #player.projectiles, 1, -1 do
         local projectile = player.projectiles[i]
-        local hit = false
-        
+
         for _, enemy in ipairs(self.enemies) do
-            if not enemy.isDead then
+            -- A piercing projectile damages each enemy at most once
+            if not enemy.isDead and not projectile.hitEnemies[enemy] then
                 local dx = projectile.x - enemy.x
                 local dy = projectile.y - enemy.y
-                local distance = math.sqrt(dx * dx + dy * dy)
-                
-                if distance < 20 then -- Collision radius
+                local radius = 15 + projectile.size -- enemy radius + projectile radius
+
+                if dx * dx + dy * dy < radius * radius then
                     enemy:takeDamage(projectile.damage)
-                    table.remove(player.projectiles, i)
-                    hit = true
-                    break
+                    projectile.hitEnemies[enemy] = true
+
+                    if projectile.pierceCount > 0 then
+                        projectile.pierceCount = projectile.pierceCount - 1
+                    else
+                        table.remove(player.projectiles, i)
+                        break
+                    end
                 end
             end
         end
-        
-        if hit then break end
     end
     
     -- Enemy attacks against the player are handled in Enemy:attackState
@@ -347,8 +351,12 @@ function World:draw()
     -- Draw tutorial message
     if self.tutorial.enabled and not self.tutorial.completed then
         local currentStep = self.tutorial.steps[self.tutorial.currentStep]
-        if currentStep and currentStep.type == "message" then
-            local alpha = 1 - (self.tutorial.stepTimer / currentStep.duration)
+        if currentStep and currentStep.text then
+            -- Timed messages fade out; the spawn step's text stays until the enemies are defeated
+            local alpha = 1
+            if currentStep.duration then
+                alpha = 1 - (self.tutorial.stepTimer / currentStep.duration)
+            end
             love.graphics.setColor(1, 1, 1, alpha)
             -- Drawn below the HUD so the two do not overlap
             love.graphics.print(currentStep.text, 20, 130, 0, 1.5)

@@ -117,11 +117,11 @@ function Loot.new(x, y, itemType)
     self.lifetime = self.item.lifetime
     self.rotation = 0
     
-    -- Movement
-    self.velocity = {x = 0, y = 0}
-    self.gravity = 100
-    self.bounce = 0.5
-    self.friction = 0.98
+    -- Movement: a short burst away from the drop point that slows to a stop
+    local angle = math.random() * math.pi * 2
+    local speed = 40 + math.random() * 40
+    self.velocity = {x = math.cos(angle) * speed, y = math.sin(angle) * speed}
+    self.friction = 0.95
     
     -- State
     self.isCollected = false
@@ -139,9 +139,10 @@ function Loot:update(dt)
         return
     end
     
-    -- Update physics
-    self.velocity.y = self.velocity.y + self.gravity * dt
-    self.velocity.x = self.velocity.x * self.friction
+    -- Update physics (top-down, so no gravity; damping is frame-rate independent)
+    local damping = self.friction ^ (dt * 60)
+    self.velocity.x = self.velocity.x * damping
+    self.velocity.y = self.velocity.y * damping
     
     -- Update position
     self.x = self.x + self.velocity.x * dt
@@ -162,10 +163,10 @@ function Loot:applyEffect(player)
         elseif self.item.effect == "energy" then
             player.energy = math.min(player.maxEnergy, player.energy + self.item.value)
         elseif self.item.effect == "shield" then
-            player.shield = math.min(player.maxHealth, player.shield + self.item.value)
+            player.shield = math.min(player.maxShield, player.shield + self.item.value)
         elseif self.item.effect == "repair" then
             player:heal(self.item.value)
-            player.shield = player.maxHealth
+            player.shield = player.maxShield
         end
     elseif self.item.type == "upgrade" then
         -- TODO: Implement weapon upgrade system
