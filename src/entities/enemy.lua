@@ -142,6 +142,10 @@ function Enemy:update(dt)
     -- Apply movement
     self.x = self.x + self.velocity.x * dt
     self.y = self.y + self.velocity.y * dt
+
+    -- Keep enemies on screen so retreating ones can still be finished off
+    self.x = math.max(15, math.min(love.graphics.getWidth() - 15, self.x))
+    self.y = math.max(15, math.min(love.graphics.getHeight() - 15, self.y))
 end
 
 function Enemy:setTarget(target)

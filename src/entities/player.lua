@@ -130,6 +130,7 @@ function Player.new(x, y)
     -- Combat state
     self.isCharging = false
     self.chargeTimer = 0
+    self.chargeReady = false
     self.lastFired = 0
     
     -- Movement
@@ -143,7 +144,11 @@ function Player:update(dt)
     -- Update position based on velocity
     self.x = self.x + self.velocity.x * dt
     self.y = self.y + self.velocity.y * dt
-    
+
+    -- Keep the player on screen
+    self.x = math.max(20, math.min(love.graphics.getWidth() - 20, self.x))
+    self.y = math.max(20, math.min(love.graphics.getHeight() - 20, self.y))
+
     -- Update shield recharge
     if self.shield < config.maxHealth then
         self.shieldRechargeTimer = self.shieldRechargeTimer + dt
@@ -162,12 +167,16 @@ function Player:update(dt)
         self.fireTimer = self.fireTimer - dt
     end
     
-    -- Update charge timer
+    -- Update charge timer; fire at the cursor once fully charged
     if self.isCharging then
         self.chargeTimer = self.chargeTimer + dt
         if self.chargeTimer >= self.weapons[self.currentWeapon].effects.chargeTime then
             self.isCharging = false
             self.chargeTimer = 0
+            self.chargeReady = true
+            local mx, my = love.mouse.getPosition()
+            self:fire(mx, my)
+            self.chargeReady = false
         end
     end
     
@@ -180,14 +189,14 @@ function Player:update(dt)
         -- Update trail effects
         if projectile.effects and projectile.effects.trail then
             table.insert(projectile.trail, {x = projectile.x, y = projectile.y})
-            if #projectile.trail > self.weapons[self.currentWeapon].effects.trailLength then
+            if #projectile.trail > projectile.effects.trailLength then
                 table.remove(projectile.trail, 1)
             end
         end
         
         -- Remove projectiles that have traveled their maximum range
         local distance = math.sqrt((projectile.x - projectile.startX)^2 + (projectile.y - projectile.startY)^2)
-        if distance >= self.weapons[self.currentWeapon].range then
+        if distance >= projectile.range then
             table.remove(self.projectiles, i)
         end
     end
@@ -203,6 +212,12 @@ function Player:update(dt)
 end
 
 function Player:move(dx, dy)
+    -- Normalize so diagonal movement is not faster
+    local length = math.sqrt(dx * dx + dy * dy)
+    if length > 0 then
+        dx, dy = dx / length, dy / length
+    end
+
     self.velocity.x = dx * config.moveSpeed
     self.velocity.y = dy * config.moveSpeed
     
@@ -214,17 +229,13 @@ function Player:move(dx, dy)
 end
 
 function Player:takeDamage(amount)
-    -- Shield takes damage first
-    if self.shield > 0 then
-        self.shield = math.max(0, self.shield - amount)
-        self.shieldRechargeTimer = 0
-        if self.shield <= 0 then
-            -- Remaining damage goes to health
-            self.health = math.max(0, self.health + self.shield)
-        end
-    else
-        self.health = math.max(0, self.health - amount)
-    end
+    -- Shield absorbs damage first; any overflow goes to health
+    local absorbed = math.min(self.shield, amount)
+    self.shield = self.shield - absorbed
+    self.health = math.max(0, self.health - (amount - absorbed))
+
+    -- Any hit delays shield recharge
+    self.shieldRechargeTimer = 0
 end
 
 function Player:heal(amount)
@@ -254,13 +265,13 @@ function Player:fire(targetX, targetY)
     
     local weapon = self.weapons[self.currentWeapon]
     
-    -- Handle charge weapons
-    if weapon.effects.charge then
+    -- Charge weapons: a click starts the charge, and Player:update fires when it completes
+    if weapon.effects.charge and not self.chargeReady then
         if not self.isCharging then
             self.isCharging = true
             self.chargeTimer = 0
-            return false
         end
+        return false
     end
     
     -- Calculate projectile direction
@@ -305,8 +316,10 @@ function Player:createProjectile(angle, weapon)
         color = weapon.color,
         size = weapon.projectileSize,
         effects = weapon.effects,
+        range = weapon.range,
         trail = {},
-        pierceCount = weapon.effects.pierce and weapon.effects.pierceCount or 0
+        pierceCount = weapon.effects.pierce and weapon.effects.pierceCount or 0,
+        hitEnemies = {}
     }
     
     table.insert(self.projectiles, projectile)
@@ -328,6 +341,9 @@ end
 function Player:switchWeapon(weaponName)
     if self.weapons[weaponName] then
         self.currentWeapon = weaponName
+        -- Cancel any charge in progress so it does not carry over to another weapon
+        self.isCharging = false
+        self.chargeTimer = 0
         return true
     end
     return false

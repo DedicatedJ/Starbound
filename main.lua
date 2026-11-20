@@ -11,11 +11,15 @@ local gameState = {
     MENU = "menu",
     PLAYING = "playing",
     PAUSED = "paused",
-    TUTORIAL = "tutorial"
+    TUTORIAL = "tutorial",
+    GAME_OVER = "game_over"
 }
 
 -- Current game state
 local currentState = gameState.MENU
+
+-- State to return to when unpausing (PLAYING or TUTORIAL)
+local stateBeforePause = gameState.PLAYING
 
 -- Game objects
 local player
@@ -73,6 +77,8 @@ function love.draw()
         drawMenu()
     elseif currentState == gameState.PAUSED then
         drawPaused()
+    elseif currentState == gameState.GAME_OVER then
+        drawGameOver()
     end
 end
 
@@ -80,10 +86,11 @@ end
 function love.keypressed(key, scancode, isrepeat)
     if key == "escape" then
         if currentState == gameState.PLAYING or currentState == gameState.TUTORIAL then
+            stateBeforePause = currentState
             currentState = gameState.PAUSED
             ui:toggleMenu()
         elseif currentState == gameState.PAUSED then
-            currentState = gameState.PLAYING
+            currentState = stateBeforePause
             ui:toggleMenu()
         end
     elseif key == "i" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
@@ -92,6 +99,9 @@ function love.keypressed(key, scancode, isrepeat)
         ui:toggleMap()
     elseif key == "space" and currentState == gameState.MENU then
         currentState = gameState.TUTORIAL
+    elseif key == "r" and currentState == gameState.GAME_OVER then
+        initializeGame()
+        currentState = gameState.MENU
     elseif key == "1" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
         player:switchWeapon("laser_pistol")
     elseif key == "2" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
@@ -127,14 +137,13 @@ end
 function updateGame(dt)
     -- Update player movement
     local dx, dy = 0, 0
-    if love.keyboard.isDown("left") then dx = dx - 1 end
-    if love.keyboard.isDown("right") then dx = dx + 1 end
-    if love.keyboard.isDown("up") then dy = dy - 1 end
-    if love.keyboard.isDown("down") then dy = dy + 1 end
-    
-    if dx ~= 0 or dy ~= 0 then
-        player:move(dx, dy)
-    end
+    if love.keyboard.isDown("left", "a") then dx = dx - 1 end
+    if love.keyboard.isDown("right", "d") then dx = dx + 1 end
+    if love.keyboard.isDown("up", "w") then dy = dy - 1 end
+    if love.keyboard.isDown("down", "s") then dy = dy + 1 end
+
+    -- Always set velocity so the player stops when no key is held
+    player:move(dx, dy)
     
     -- Update world
     world:update(dt)
@@ -145,6 +154,11 @@ function updateGame(dt)
     -- Check if tutorial is completed
     if currentState == gameState.TUTORIAL and world.tutorial.completed then
         currentState = gameState.PLAYING
+    end
+
+    -- Check for player death
+    if player.health <= 0 then
+        currentState = gameState.GAME_OVER
     end
 end
 
@@ -187,4 +201,17 @@ end
 function drawPaused()
     -- Draw the frozen game behind the pause menu (ui:draw renders the menu overlay)
     drawGame()
+end
+
+-- Draw game over screen
+function drawGameOver()
+    drawGame()
+
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    love.graphics.setColor(0, 0, 0, 0.7)
+    love.graphics.rectangle("fill", 0, 0, w, h)
+    love.graphics.setColor(1, 0.2, 0.2)
+    love.graphics.printf("GAME OVER", 0, h / 2 - 40, w / 2, "center", 0, 2)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("Press R to return to the menu", 0, h / 2 + 20, w, "center")
 end 
