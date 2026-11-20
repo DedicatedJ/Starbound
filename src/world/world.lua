@@ -182,6 +182,7 @@ function World:update(dt)
             if player then
                 enemy:setTarget(player)
             end
+            enemy:update(dt)
         end
     end
     
@@ -305,12 +306,7 @@ function World:checkCombat()
         if hit then break end
     end
     
-    -- Check enemy attacks against player
-    for _, enemy in ipairs(self.enemies) do
-        if not enemy.isDead and enemy:canAttack() then
-            enemy:attack(player)
-        end
-    end
+    -- Enemy attacks against the player are handled in Enemy:attackState
 end
 
 function World:updateCurrentChunk()
@@ -329,18 +325,23 @@ function World:draw()
                 self:drawTile(x, y, tile)
             end
         end
-        
-        -- Draw entities
-        for _, entity in ipairs(chunk.entities) do
-            if entity.draw then
-                entity:draw()
-            end
-        end
     end
     
     -- Draw loot
     for _, item in ipairs(self.loot) do
         item:draw()
+    end
+    
+    -- Draw enemies (chunk enemies are also tracked in self.enemies)
+    for _, enemy in ipairs(self.enemies) do
+        enemy:draw()
+    end
+    
+    -- Draw world entities (player and its projectiles)
+    for _, entity in ipairs(self.entities) do
+        if entity.draw then
+            entity:draw()
+        end
     end
     
     -- Draw tutorial message
@@ -349,7 +350,8 @@ function World:draw()
         if currentStep and currentStep.type == "message" then
             local alpha = 1 - (self.tutorial.stepTimer / currentStep.duration)
             love.graphics.setColor(1, 1, 1, alpha)
-            love.graphics.print(currentStep.text, 20, 20, 0, 1.5)
+            -- Drawn below the HUD so the two do not overlap
+            love.graphics.print(currentStep.text, 20, 130, 0, 1.5)
         end
     end
 end

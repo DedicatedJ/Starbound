@@ -108,7 +108,9 @@ function Player.new(x, y)
     
     -- Stats
     self.health = config.maxHealth
+    self.maxHealth = config.maxHealth
     self.shield = config.maxHealth
+    self.maxShield = config.maxHealth
     self.shieldRechargeTimer = 0
     self.energy = 100
     self.maxEnergy = 100
