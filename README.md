@@ -33,9 +33,9 @@ In Starbound Legacy, you play as a young spacefarer who inherits a mysterious st
 
 ## Running the Game
 
-### On Windows
-```bash
-"C:\Program Files\LOVE\love.exe" .
+### On Windows (PowerShell)
+```powershell
+& "C:\Program Files\LOVE\love.exe" .
 ```
 
 ### On macOS
@@ -48,6 +48,25 @@ In Starbound Legacy, you play as a young spacefarer who inherits a mysterious st
 love .
 ```
 
+## Running the Tests
+
+The harness in `tests/harness` loads the game, simulates keyboard and mouse input, runs unit checks on the game modules, and plays through the tutorial, death, and restart. It prints a PASS or FAIL line per check and exits with code 0 when everything passes. Run it from the repository root.
+
+### On Windows (PowerShell)
+```powershell
+& "C:\Program Files\LOVE\lovec.exe" tests\harness
+```
+
+### On macOS
+```bash
+/Applications/love.app/Contents/MacOS/love tests/harness
+```
+
+### On Linux
+```bash
+love tests/harness
+```
+
 ## Development
 
 The game is structured as follows:
@@ -58,6 +77,7 @@ The game is structured as follows:
   - `world/` - World generation and management
   - `ui/` - User interface components
   - `utils/` - Utility functions
+- `tests/harness/` - Test harness (run with LÖVE, see Running the Tests)
 
 ## Contributing
 
