@@ -10,14 +10,18 @@ Dates are relative to the start of the game (year 0). Nothing before that has an
 
 | When | Event | Notes |
 |---|---|---|
-| Unknown | The [[Void Collapse]] begins and swallows half the settled worlds | Cause unknown |
-| Unknown | Spacers start telling stories of [[The Arkadia]], a ship that can heal dead worlds | Myth or memory? |
-| Before year -10 | [[Mara Solis]] goes looking for a way to stop the Collapse; [[Quill]] keeps [[Drift Station]] running for her | |
-| About year -10 | Mara flies into the dark and does not come back | Her child, [[The Player]], is left behind |
-| During her search | Mara splits the Arkadia's coordinates into three [[Map Fragments]] and seals them in vaults: [[Mara's Log 31]] on [[Cinder]], [[Mara's Log 44]] on [[Glacius]], [[Mara's Log 52]] on [[Verdant Deep]] | Log numbers suggest that order |
-| During her search | [[The Lost Survey Team]] disappears on Verdant Deep | Before or after Mara? Unknown |
-| End of her search | Mara reaches the Arkadia inside [[The Rift]] and seals herself in its core to hold the Rift shut | Recorded in [[Mara's Final Recording]] |
-| Year 0 | A courier drone finds the player with [[Mara's Ship]]'s [[Access Key]], her [[Star Map]] and the words *Find the Arkadia* | Who sent it? |
-| Year 0 | The player lands on [[Kepler Reach]], meets Quill, and is confronted by [[Captain Varro]] | The game |
-| Year 0 | The player recovers all three fragments, learns Mara may be alive, and boards the Arkadia | |
-| After | One of three endings: [[Dawn of Arkadia]], [[The Keeper's Child]] or [[Varro's Crown]] | |
+| Long ago | [[The Makers]] build [[The Arkadia]] and the vaults, bind the ship to its captain's line, and vanish | |
+| Generations | The Solis family carries the [[Access Key]] as an heirloom | They do not know what it opens |
+| Unknown | The [[Void Collapse]] swallows half the settled worlds; [[The Rift]] opens with the dormant Arkadia inside | Cause unknown |
+| Unknown | Spacers tell stories of a ship that can heal dead worlds | Memory of the Makers |
+| Before year -10 | [[Mara Solis]] finds [[Quill]] drifting out of the Rift and learns the Arkadia is real | |
+| Before year -10 | [[Captain Varro]] starts following Mara | |
+| About year -10 | Mara hides her child under another name and leaves without saying goodbye | [[Mara's Log 44]] |
+| Year -10 | Mara hides the [[Map Fragments]]: [[Mara's Log 31]] on [[Cinder]] (Varro watches), [[Mara's Log 44]] on [[Glacius]], [[Mara's Log 52]] on [[Verdant Deep]] | Log numbers give the order |
+| Unknown | [[The Lost Survey Team]] disappears on Verdant Deep | Before or after Mara? |
+| Year -10 | Mara reaches the Arkadia alone, takes the heart, and the Collapse stops spreading | [[The Heart and the Helm]] |
+| Years -10 to 0 | Quill keeps [[Drift Station]] and waits; Varro holds Cinder and waits | |
+| Year 0 | Mara weakens; the Rift widens again. She launches [[Mara's Ship]] home with the key and records [[Mara's Final Recording]] | |
+| Year 0 | The courier drone finds the player; the ship sets them down on [[Kepler Reach]] | The game starts |
+| Year 0 | The player recovers the fragments, learns the truth from Quill, and boards the Arkadia | |
+| After | [[Dawn of Arkadia]], [[The Keeper's Child]] or [[Varro's Crown]] | |

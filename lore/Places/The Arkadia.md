@@ -27,5 +27,12 @@ A huge, ancient ship that can bring dead planets back to life and push [[The Voi
 ## Filed here because
 It is something the player travels to and boards. It is also an artifact and a voice; link here from those contexts instead of making new notes.
 
+## How it works (draft)
+- Built by [[The Makers]] and bound to its last captain's bloodline, which became the Solis family.
+- It needs two keepers: [[The Heart and the Helm]]. One at the heart holds the Rift shut; one at the helm wakes it and steers its healing.
+- Waking it takes a Solis with the [[Access Key]]. Once awake, it holds its course on its own, and anyone at the helm can change that course, which is how [[Captain Varro]] turns it into a weapon.
+- Asleep, it cannot call off its [[Drones]]. They keep everyone away, including the heir, until the key docks.
+- Mara has been at its heart for ten years. With no one at the helm, it has not healed anything.
+
 ## Open
-See [[Open Questions]] 8, 16.
+What the healing actually is ([[Open Questions]] 16) and who the Makers were ([[The Makers]]).

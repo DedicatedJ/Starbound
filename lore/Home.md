@@ -10,18 +10,20 @@ Start here. Every lore note is one thing (a person, place, item, event...) filed
 
 ## Sections
 - **Characters:** [[Mara Solis]], [[The Player]], [[Quill]], [[Captain Varro]], [[Ship Computer]]
-- **Factions:** [[Varro's Crews]], [[The Lost Survey Team]]
+- **Factions:** [[Varro's Crews]], [[The Lost Survey Team]], [[The Makers]]
 - **Places:** [[Kepler Reach]], [[Drift Station]], [[Cinder]], [[Glacius]], [[Verdant Deep]], [[The Rift]], [[The Arkadia]]
 - **Vaults:** [[Cinder Vault]], [[Glacius Vault]], [[Verdant Vault]]
 - **Items:** [[Mara's Ship]], [[Star Map]], [[Map Fragments]], [[Access Key]], [[Void Shielding]], [[Jump Drive Mk II]], [[Alien Essence]], [[Void Beam]]
 - **Creatures:** [[Alien Wildlife]], [[Drones]]
-- **Concepts:** [[The Void]], [[Void Collapse]]
+- **Concepts:** [[The Void]], [[Void Collapse]], [[The Heart and the Helm]]
 - **Documents:** [[Mara's Log 31]], [[Mara's Log 44]], [[Mara's Log 52]], [[Mara's Final Recording]]
 - **Endings:** [[Dawn of Arkadia]], [[The Keeper's Child]], [[Varro's Crown]]
 - **Mechanics** (things with stats but little story): [[Global Balance]], weapons ([[Laser Pistol]], [[Plasma Rifle]], [[Ion Cannon]], [[Scatter Shot]]), pickups ([[Health Crystal]], [[Energy Crystal]], [[Shield Crystal]], [[Weapon Upgrade]], [[Repair Kit]], [[Salvage]]), upgrades ([[Expanded Fuel Tanks]], [[Armor Plating]], [[Shield Capacitor]], [[Power Cell]])
 - **Balance views** (Bases tables, editable): `Balance/Weapons`, `Balance/Enemies`, `Balance/Upgrades`, `Balance/Pickups`, `Balance/Locations`
 
 ## Working notes
+- [[Story Spine]]: the whole story in order, with the plot holes closed
+- [[Game Changes Needed]]: game text that still has to catch up with the lore
 - [[Timeline]]: what happened, in order
 - [[Open Questions]]: holes in the lore, the writing to-do list
 

@@ -32,5 +32,7 @@ The scar left by the [[Void Collapse]]. [[The Arkadia]] drifts somewhere inside.
 - Heavy [[Drones]] resistance guards the Arkadia.
 - [[Mara Solis]] holds the Rift shut from the Arkadia's core. If no one holds it, the Rift keeps widening ([[Mara's Log 52]]).
 
-## Open
-See [[Open Questions]] 9.
+## Now (draft)
+Mara has held the Rift shut from [[The Arkadia]]'s heart for ten years, which stopped the [[Void Collapse]] from spreading. As she weakens it is widening again. If no one takes the helm or the heart, a second Collapse follows.
+
+The [[Drones]] here are the Arkadia's own defenses. If the player refused [[Captain Varro]], his fleet waits at the Rift's edge.
