@@ -12,11 +12,15 @@ jobs:
       - uses: actions/checkout@v4
 
       # LÖVE needs a display; xvfb provides a virtual one with software OpenGL
-      - name: Install LÖVE and a virtual display
+      - name: Install LÖVE, a virtual display and PyYAML
         run: |
           sudo apt-get update
-          sudo apt-get install -y love xvfb
+          sudo apt-get install -y love xvfb python3-yaml
           love --version
+
+      # src/data/*.lua are generated from the lore vault; fail if they are stale or hand-edited
+      - name: Check game data matches the lore vault
+        run: python3 tools/gen_data.py --check
 
       - name: Run the test harness
         run: xvfb-run -a -s "-screen 0 1280x720x24" love tests/harness
