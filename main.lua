@@ -119,12 +119,27 @@ function love.keypressed(key, scancode, isrepeat)
         player:switchWeapon("scatter_shot")
     elseif key == "5" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
         player:switchWeapon("void_beam")
+    elseif (key == "6" or key == "7" or key == "8") and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+        -- Quick-use inventory slots 1 to 3
+        player:useItem(tonumber(key) - 5)
     end
 end
 
 -- Handle mouse input
 function love.mousepressed(x, y, button)
-    if (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) and button == 1 then
+    local inGame = currentState == gameState.PLAYING or currentState == gameState.TUTORIAL
+    if inGame and ui.showInventory then
+        -- Inventory open: click uses an item, right-click drops it; no firing
+        local slot = ui:inventorySlotAt(x, y)
+        if slot and button == 1 then
+            player:useItem(slot)
+        elseif slot and button == 2 then
+            world:dropItem(player, slot)
+        end
+        return
+    end
+
+    if inGame and button == 1 then
         -- Left click to fire at the world position under the cursor
         player:fire(screenToWorld(x, y))
     end

@@ -266,6 +266,44 @@ local function runUnitTests()
     check("upgrades do not leak to other players", pb.weapons.laser_pistol.damage == baseDamage and Player.new(0, 0).weapons.laser_pistol.damage == baseDamage)
     for _ = 1, 20 do pa:upgradeWeapon("plasma_rifle", 1) end
     check("weapon level is capped at 10", pa.weaponLevels.plasma_rifle == 10, pa.weaponLevels.plasma_rifle)
+
+    -- Inventory
+    p = Player.new(0, 0)
+    check("materials go to the inventory", Loot.new(0, 0, "alien_essence"):applyEffect(p) and p:countItem("alien_essence") == 1)
+    Loot.new(0, 0, "alien_essence"):applyEffect(p)
+    check("same items stack in one slot", #p.inventory == 1 and p.inventory[1].count == 2, #p.inventory)
+    check("health crystal at full health is kept", Loot.new(0, 0, "health_crystal"):applyEffect(p) and p:countItem("health_crystal") == 1 and p.health == 100)
+    p.health = 40
+    local slot
+    for i, st in ipairs(p.inventory) do if st.type == "health_crystal" then slot = i end end
+    check("using a health crystal from the inventory heals", p:useItem(slot) and p.health == 65 and p:countItem("health_crystal") == 0, p.health)
+    check("materials cannot be used", p:useItem(1) == false and p:countItem("alien_essence") == 2)
+    p.health = 30
+    check("health crystal is used at once when hurt", Loot.new(0, 0, "health_crystal"):applyEffect(p) and p.health == 55 and p:countItem("health_crystal") == 0)
+    local full = Player.new(0, 0)
+    for _, t in ipairs({"alien_essence", "health_crystal", "energy_crystal", "shield_crystal", "repair_kit"}) do full:addItem(t) end
+    for i = 1, 3 do full.inventory[#full.inventory + 1] = {type = "x" .. i, count = 1} end
+    local leftover = Loot.new(0, 0, "weapon_upgrade")
+    full.weaponLevels.laser_pistol = 10
+    check("full inventory leaves the item on the ground", leftover:applyEffect(full) == false and not leftover.isCollected)
+    w = World.new({spawnEnemies = false, tutorial = false})
+    p = Player.new(0, 0)
+    w:addEntity(p)
+    p:addItem("alien_essence")
+    check("dropping puts the item on the ground", w:dropItem(p, 1) and #w.loot == 1 and #p.inventory == 0)
+    w:update(DT)
+    check("dropped item is not picked straight back up", #p.inventory == 0 and #w.loot == 1)
+    for _ = 1, 120 do w:update(DT) end
+    p.x, p.y = w.loot[1] and w.loot[1].x or 0, w.loot[1] and w.loot[1].y or 0
+    w:update(DT)
+    check("dropped item can be picked up after the delay", p:countItem("alien_essence") == 1)
+
+    -- Inventory slot hit test
+    local UI = require("src.ui.ui")
+    local ui = UI.new(p)
+    ui.showInventory = true
+    local sx, sy, sw, sh = ui:inventorySlotRect(3)
+    check("inventory slot hit test", ui:inventorySlotAt(sx + sw / 2, sy + sh / 2) == 3 and ui:inventorySlotAt(-5, -5) == nil)
 end
 
 function love.load(args)

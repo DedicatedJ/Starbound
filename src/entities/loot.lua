@@ -125,13 +125,19 @@ function Loot.new(x, y, itemType)
     
     -- State
     self.isCollected = false
-    
+    self.pickupDelay = 0   -- seconds before it can be picked up (used for dropped items)
+
     return self
 end
 
 function Loot:update(dt)
     if self.isCollected then return end
     
+    -- Count down the pickup delay
+    if self.pickupDelay > 0 then
+        self.pickupDelay = math.max(0, self.pickupDelay - dt)
+    end
+
     -- Update lifetime
     self.lifetime = self.lifetime - dt
     if self.lifetime <= 0 then
@@ -154,26 +160,51 @@ function Loot:update(dt)
     end
 end
 
-function Loot:applyEffect(player)
-    if self.isCollected then return end
-    
-    if self.item.type == "consumable" then
-        if self.item.effect == "heal" then
-            player:heal(self.item.value)
-        elseif self.item.effect == "energy" then
-            player.energy = math.min(player.maxEnergy, player.energy + self.item.value)
-        elseif self.item.effect == "shield" then
-            player.shield = math.min(player.maxShield, player.shield + self.item.value)
-        elseif self.item.effect == "repair" then
-            player:heal(self.item.value)
+-- Item definition for an item type (name, color, effect, ...)
+function Loot.getItem(itemType)
+    return config.items[itemType]
+end
+
+-- Apply an item's effect to the player. Returns true only if it did something,
+-- so a full-health player keeps a health crystal instead of wasting it.
+function Loot.applyItemEffect(itemType, player)
+    local item = config.items[itemType]
+    if not item then return false end
+
+    if item.type == "consumable" then
+        if item.effect == "heal" and player.health < player.maxHealth then
+            player:heal(item.value)
+            return true
+        elseif item.effect == "energy" and player.energy < player.maxEnergy then
+            player.energy = math.min(player.maxEnergy, player.energy + item.value)
+            return true
+        elseif item.effect == "shield" and player.shield < player.maxShield then
+            player.shield = math.min(player.maxShield, player.shield + item.value)
+            return true
+        elseif item.effect == "repair" and (player.health < player.maxHealth or player.shield < player.maxShield) then
+            player:heal(item.value)
             player.shield = player.maxShield
+            return true
         end
-    elseif self.item.type == "upgrade" then
+    elseif item.type == "upgrade" then
         -- Weapon upgrades boost the weapon currently in hand
-        player:upgradeWeapon(player.currentWeapon, self.item.value)
+        return player:upgradeWeapon(player.currentWeapon, item.value)
     end
-    
-    self.isCollected = true
+
+    -- Materials, and items that would have no effect right now
+    return false
+end
+
+-- Called when the player touches the item. Useful items apply at once; anything
+-- else goes to the inventory. If the inventory is full the item stays on the ground.
+function Loot:applyEffect(player)
+    if self.isCollected or self.pickupDelay > 0 then return false end
+
+    if Loot.applyItemEffect(self.type, player) or player:addItem(self.type) then
+        self.isCollected = true
+        return true
+    end
+    return false
 end
 
 function Loot:draw()

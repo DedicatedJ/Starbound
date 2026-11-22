@@ -1,3 +1,5 @@
+local Loot = require("src.entities.loot")
+
 local UI = {}
 UI.__index = UI
 
@@ -117,23 +119,63 @@ function UI:drawBar(x, y, w, h, fraction, color)
     love.graphics.rectangle("line", x, y, w, h)
 end
 
-function UI:drawInventory()
-    -- Save current color
-    local r, g, b, a = love.graphics.getColor()
-    
-    -- Draw inventory background
-    love.graphics.setColor(0, 0, 0, 0.8)
-    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-    
-    -- Draw inventory grid
-    love.graphics.setColor(1, 1, 1)
-    for i = 1, 8 do
-        local x = (i - 1) * (config.inventorySlotSize + 5) + config.padding
-        local y = love.graphics.getHeight() - config.inventorySlotSize - config.padding
-        love.graphics.rectangle("line", x, y, config.inventorySlotSize, config.inventorySlotSize)
+-- Screen rectangle of an inventory slot (slots are centered along the bottom)
+function UI:inventorySlotRect(index)
+    local size, gap = config.inventorySlotSize, 8
+    local count = self.player and self.player.inventorySize or 8
+    local totalWidth = count * size + (count - 1) * gap
+    local x = (love.graphics.getWidth() - totalWidth) / 2 + (index - 1) * (size + gap)
+    local y = love.graphics.getHeight() - size - 60
+    return x, y, size, size
+end
+
+-- Inventory slot index under a screen position, or nil
+function UI:inventorySlotAt(sx, sy)
+    if not (self.showInventory and self.player) then return nil end
+    for i = 1, self.player.inventorySize do
+        local x, y, w, h = self:inventorySlotRect(i)
+        if sx >= x and sx <= x + w and sy >= y and sy <= y + h then
+            return i
+        end
     end
-    
-    -- Restore color
+    return nil
+end
+
+function UI:drawInventory()
+    local r, g, b, a = love.graphics.getColor()
+    local screenW, screenH = love.graphics.getWidth(), love.graphics.getHeight()
+
+    -- Dim the game behind the inventory
+    love.graphics.setColor(0, 0, 0, 0.7)
+    love.graphics.rectangle("fill", 0, 0, screenW, screenH)
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("INVENTORY", 0, screenH - 140, screenW / 2, "center", 0, 2)
+    love.graphics.printf("Click to use, right-click to drop, keys 6-8 use slots 1-3, I to close",
+        0, screenH - 25, screenW, "center")
+
+    local mx, my = love.mouse.getPosition()
+    local hovered = self:inventorySlotAt(mx, my)
+    for i = 1, (self.player and self.player.inventorySize or 8) do
+        local x, y, w, h = self:inventorySlotRect(i)
+        love.graphics.setColor(1, 1, 1, i == hovered and 0.25 or 0.1)
+        love.graphics.rectangle("fill", x, y, w, h)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.rectangle("line", x, y, w, h)
+
+        local stack = self.player and self.player.inventory[i]
+        if stack then
+            local item = Loot.getItem(stack.type)
+            love.graphics.setColor(item.color)
+            love.graphics.circle("fill", x + w / 2, y + h / 2, w * 0.3)
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.print(tostring(stack.count), x + 3, y + h - 15)
+            if i == hovered then
+                love.graphics.printf(item.name, x - 40, y - 20, w + 80, "center")
+            end
+        end
+    end
+
     love.graphics.setColor(r, g, b, a)
 end
 

@@ -252,20 +252,53 @@ function Player:heal(amount)
     self.health = math.min(config.maxHealth, self.health + amount)
 end
 
-function Player:addItem(item)
+-- Inventory: up to inventorySize slots, each a stack {type = itemType, count = n}
+local MAX_STACK = 99
+
+function Player:addItem(itemType)
+    for _, stack in ipairs(self.inventory) do
+        if stack.type == itemType and stack.count < MAX_STACK then
+            stack.count = stack.count + 1
+            return true
+        end
+    end
     if #self.inventory < self.inventorySize then
-        table.insert(self.inventory, item)
+        table.insert(self.inventory, {type = itemType, count = 1})
         return true
     end
     return false
 end
 
+-- Remove one item from a slot; returns its type, or nil if the slot is empty
 function Player:removeItem(index)
-    if index >= 1 and index <= #self.inventory then
+    local stack = self.inventory[index]
+    if not stack then return nil end
+    stack.count = stack.count - 1
+    if stack.count <= 0 then
         table.remove(self.inventory, index)
+    end
+    return stack.type
+end
+
+-- Use one item from a slot; returns true if it had an effect
+function Player:useItem(index)
+    local stack = self.inventory[index]
+    if stack and require("src.entities.loot").applyItemEffect(stack.type, self) then
+        self:removeItem(index)
         return true
     end
     return false
+end
+
+-- Total number of an item type across all slots
+function Player:countItem(itemType)
+    local total = 0
+    for _, stack in ipairs(self.inventory) do
+        if stack.type == itemType then
+            total = total + stack.count
+        end
+    end
+    return total
 end
 
 function Player:fire(targetX, targetY)

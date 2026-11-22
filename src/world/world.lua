@@ -299,6 +299,17 @@ function World:createLootFromEnemy(enemy)
     end
 end
 
+-- Drop one item from the player's inventory onto the ground nearby
+function World:dropItem(player, index)
+    local itemType = player:removeItem(index)
+    if not itemType then return false end
+    local Loot = require("src.entities.loot")
+    local loot = Loot.new(player.x, player.y, itemType)
+    loot.pickupDelay = 1.5   -- so it is not picked straight back up
+    table.insert(self.loot, loot)
+    return true
+end
+
 function World:findPlayer()
     for _, entity in ipairs(self.entities) do
         if entity.__index == require("src.entities.player") then
