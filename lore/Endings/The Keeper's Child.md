@@ -21,3 +21,6 @@ The player opens the core and Mara stumbles out, older, thinner and alive. Then 
 
 ## How it works (draft)
 Mara takes the helm just long enough to wake the ship, then the player takes the heart. Once awake, the Arkadia holds its course by itself, so Quill can fly her home ([[The Heart and the Helm]]). If the player refused [[Captain Varro]], his fleet scatters when the ship wakes.
+
+## A possible last beat (draft)
+When the player takes the heart, the Arkadia asks for the keeper's name. Answering with the Solis name or the name [[Tamsin Hale]] gave them is the player's last choice. Not in the game yet.

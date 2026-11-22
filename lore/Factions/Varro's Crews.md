@@ -45,5 +45,9 @@ The pirates under [[Captain Varro]]. They hold [[Cinder]] and roam desert and ic
 ## In the game
 Space pirates: armed humans who patrol, chase and shoot. They drop salvage.
 
-## Open
-See [[Open Questions]] 19.
+## Who they are (draft)
+Survivors of worlds lost to the [[Void Collapse]], starting with the few thousand [[Captain Varro]] pulled off [[Corvane]]. With no world to go home to, they raid to live, and they are loyal to Varro because he is the only one who came for them. That is why pirates turn up on nearly every world: they are everywhere the dead worlds' refugees ended up.
+
+Not every pirate answers to Varro. Some crews are independent, which is a good source of side stories.
+
+In the game they carry salvaged Maker weapons, including the [[Void Beam]].

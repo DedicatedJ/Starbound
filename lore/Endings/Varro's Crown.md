@@ -22,3 +22,6 @@ Varro's fleet arrives within the hour. He turns the Arkadia's engines from heali
 
 ## How it works (draft)
 The player wakes the ship at the helm, then hands the helm to Varro. Waking needs a Solis; steering does not ([[The Heart and the Helm]]). That is why Varro made the deal instead of just waiting.
+
+## Why it is a tragedy (draft)
+Varro set out to make sure no world was ever abandoned again ([[Corvane]]). With [[The Loom]]'s unmaking he becomes the one deciding which worlds survive. He does not think he has changed.

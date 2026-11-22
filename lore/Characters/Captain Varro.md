@@ -31,3 +31,10 @@ His deal is honest about what he wants: the coordinates, and later the ship. He 
 
 ## If the player refuses
 He does not give up. His fleet shadows the player to the edge of [[The Rift]], planning to take the ship once it wakes. In [[Dawn of Arkadia]] and [[The Keeper's Child]], the waking Arkadia scatters his fleet.
+
+## Why he wants the Arkadia (draft)
+Varro lost his world, [[Corvane]], in the [[Void Collapse]], while the powers that could have saved it did nothing. He does not believe in healing. To him, healing the dead worlds just hands them back to the same people who let them die, and the next disaster will find them just as helpless.
+
+He wants the Arkadia's unmaking so that nobody can ever abandon his people again. He is not lying when he calls the deal protection; he means it. That is what makes him dangerous, and what makes [[Varro's Crown]] a tragedy: he becomes the power that decides which worlds live.
+
+His crews are not thieves by nature. Most are survivors of dead worlds, and he is the only one who took them in.

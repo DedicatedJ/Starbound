@@ -34,5 +34,8 @@ It is something the player travels to and boards. It is also an artifact and a v
 - Asleep, it cannot call off its [[Drones]]. They keep everyone away, including the heir, until the key docks.
 - Mara has been at its heart for ten years. With no one at the helm, it has not healed anything.
 
+## History (draft)
+The Makers' great ship of making, built around [[The Loom]]. In [[The Unmaking]] it was used as a weapon. [[The Last Captain]] took it back and bound it to their line; [[The First Keeper]] held its heart for ages. The keeper's death began the [[Void Collapse]]; Mara took the empty heart ten years ago.
+
 ## Open
-What the healing actually is ([[Open Questions]] 16) and who the Makers were ([[The Makers]]).
+What the Loom's healing looks like up close.
