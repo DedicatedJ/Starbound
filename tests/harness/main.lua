@@ -672,7 +672,17 @@ local function step()
             check("state switches to playing after tutorial", state() == "playing", state())
             sim.phase = "save"
         elseif t > 120 then
-            check("tutorial completes after defeating enemies", false, ("t=%.1f spawn=%s state=%s step=%s enemies=%d health=%.0f"):format(t, tostring(spawnSeen), tostring(state()), tostring(world.tutorial.currentStep), #world.enemies, player.health))
+            local details = {}
+            for _, en in ipairs(world.enemies) do
+                table.insert(details, ("%s state=%s hp=%.0f/%.0f tutorial=%s pos=%.0f,%.0f spawn=%.0f,%.0f dist=%.0f"):format(
+                    en.type, tostring(en.state), en.health, en.maxHealth, tostring(en.isTutorialEnemy), en.x, en.y,
+                    en.spawnX or 0, en.spawnY or 0, math.sqrt((en.x - player.x) ^ 2 + (en.y - player.y) ^ 2)))
+            end
+            local major, minor, revision = love.getVersion()
+            check("tutorial completes after defeating enemies", false, ("t=%.1f spawn=%s state=%s step=%s enemies=%d health=%.0f player=%.0f,%.0f weapon=%s energy=%.0f projectiles=%d love=%d.%d.%d screen=%dx%d [%s]"):format(
+                t, tostring(spawnSeen), tostring(state()), tostring(world.tutorial.currentStep), #world.enemies, player.health,
+                player.x, player.y, player.currentWeapon, player.energy, #player.projectiles, major, minor, revision,
+                love.graphics.getWidth(), love.graphics.getHeight(), table.concat(details, "; ")))
             sim.phase = "death"
         end
         game.update(DT)
