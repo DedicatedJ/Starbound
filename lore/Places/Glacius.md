@@ -33,3 +33,6 @@ The [[Glacius Vault]] holds the second of the [[Map Fragments]]. Reaching Glaciu
 
 ## Inhabitants
 Pirates from [[Varro's Crews]].
+
+## The crystals (draft)
+The ringing pylons are a Maker archive. The crystals recorded the Makers' last voices at the end of [[The Unmaking]]. [[Mara Solis]] heard them and learned what [[The Loom]] really is ([[Mara's Log 38]]). The [[Glacius Vault]] puzzle, making every crystal sing, is a way of playing the record.

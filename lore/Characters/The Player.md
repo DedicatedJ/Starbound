@@ -29,5 +29,14 @@ Mara had them raised under another name on a quiet world off her map, so that [[
 
 They matter because they carry the bloodline: only a Solis with the [[Access Key]] can open the vaults and wake [[The Arkadia]] ([[The Heart and the Helm]]).
 
+## Childhood (draft)
+Raised by [[Tamsin Hale]] on a quiet world off the map, under a name Tamsin chose, believing their mother was a spacer who died. They learn they are a Solis the morning the courier drone arrives.
+
+## The other parent (draft option)
+Their other parent died in the first year of the [[Void Collapse]], on one of the first worlds lost. That loss is what sent Mara looking for a way to stop it. (A suggestion; it gives Mara a reason and the player a second thread to the Collapse.)
+
+## The two names
+In [[The Keeper's Child]], the player takes Mara's place at the heart. Which name do they give the ship when it asks who is keeping it? A one-line choice there would land the whole arc.
+
 ## Open
 Their birth name, the name they grew up with, age, gender, appearance, the world they were hidden on, their other parent ([[Open Questions]] 1, 3). The two names are a story hook: which one do they choose at the end?

@@ -23,3 +23,6 @@ The crystals of Glacius remember sound. Mara tuned this vault so only someone pa
 
 ## Who built it (draft)
 [[The Makers]] built it as a waystation; the glyphs are theirs. Mara re-tuned its lock so the door opens only for the Solis [[Access Key]], then sealed a fragment inside. The crystals that "remember sound" may be the Makers' own record.
+
+## The record (draft)
+Making every crystal sing plays a fragment of the Makers' last voices. The game shows only the glyph hint today; a line of their voices when the vault opens would carry this on screen.

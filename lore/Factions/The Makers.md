@@ -19,5 +19,12 @@ Whoever built [[The Arkadia]] and the vaults. Nothing in the game names them yet
 - [[Quill]] and the Rift [[Drones]] are their machines.
 - They are gone.
 
+## Their end (draft)
+The Makers built [[The Loom]] to heal worlds, and some of them turned it into a weapon. That war, [[The Unmaking]], first opened [[The Void]] and ended their civilization. Their last acts were binding [[The Arkadia]] to one captain's line ([[The Last Captain]]) and leaving one keeper at its heart ([[The First Keeper]]).
+
+They were people, not gods: an older human civilization. The Solis family descends from their last captain, which is why the Arkadia says "Solis lineage".
+
+The spacers' stories of a ship that heals dead worlds are what is left of their memory.
+
 ## Open
-Who they were, what happened to them, whether the Void destroyed them, and whether anything of them survives (the [[Glacius]] crystals that "remember sound" are a good place to hide an answer).
+What they called themselves, and whether any other Makers' descendants exist.

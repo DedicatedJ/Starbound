@@ -33,5 +33,14 @@ It is the same kind of machine as the hostile Rift [[Drones]]; the difference is
 ## Why Quill waited ten years
 Mara's orders: do not follow me, do not lead anyone to my child, and if my ship ever comes home, guide whoever it brings. Quill also could not have done more: the vaults open only for the Solis key, and an old drone would not survive the Rift.
 
+## What Quill remembers (draft)
+- Quill was the attendant of [[The First Keeper]], tending them in [[The Arkadia]]'s heart for ages.
+- It was there when the First Keeper died, the moment the [[Void Collapse]] began. Quill has never said this out loud. It blames itself for not being able to hold the door.
+- It remembers [[The Last Captain]]'s face. "You have her eyes" may mean more than Mara.
+- The Rift [[Drones]] are its siblings: the same make, still following orders it woke up from.
+
+## Its conflict
+Quill's oldest duty is to the ship and the heart. Helping the player reach the Arkadia means helping them toward the fate it watched the First Keeper suffer, and that Mara is suffering now. It helps anyway, because Mara asked. In [[The Keeper's Child]], flying Mara home is the first time in its long life that Quill gets someone out of the heart.
+
 ## Open
 How much Quill remembers of the Makers, and whether it knows more than it says ([[Open Questions]] 18).

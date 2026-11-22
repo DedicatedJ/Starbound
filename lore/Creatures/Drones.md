@@ -39,5 +39,8 @@ The Rift drones are [[The Arkadia]]'s defenses, built by [[The Makers]]. While t
 
 [[Quill]] is one of them that drifted out of the Rift and woke up.
 
+## Siblings (draft)
+The Rift drones and [[Quill]] were made together, as [[The Arkadia]]'s crew of attendants and guards. Quill tended [[The First Keeper]]; the guards kept everyone away. When the keeper died, Quill drifted out and woke up. The guards never did.
+
 ## Open
 Whether the drones on station decks elsewhere are the same machines ([[Open Questions]] 18).
