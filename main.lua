@@ -124,7 +124,7 @@ function createWorld(id, tutorial)
     if loc.kind == "rift" then
         local rng = love.math.newRandomGenerator(session:locationSeed(id) + 31)
         local angle = rng:random() * math.pi * 2
-        local distance = World.chunkPixels() * 3
+        local distance = World.chunkPixels() * 2
         newWorld.arkadia = newWorld:addInteractable({
             id = "arkadia", label = "The Arkadia",
             x = lx + math.cos(angle) * distance, y = ly + math.sin(angle) * distance, radius = 110,

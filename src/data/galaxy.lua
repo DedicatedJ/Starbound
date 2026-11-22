@@ -42,7 +42,7 @@ return {
         {
             id = "the_rift", name = "The Rift", kind = "rift",
             x = 0.88, y = 0.45,
-            biomes = {"space_station"}, levelBonus = 5,
+            biomes = {"space_station"}, levelBonus = 3,
             requires = {fragments = 3, upgrade = "void_shielding"},
             description = "The scar left by the Void Collapse. Somewhere inside waits the Arkadia."
         }
