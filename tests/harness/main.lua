@@ -764,6 +764,30 @@ local function step()
         cinder.vault:useDoor()
         check("Mara's log plays with the fragment", state() == "dialogue", state())
         game.keypressed("escape")
+        
+        -- Save the whole campaign here, then load it back
+        local Save = require("src.save.save")
+        Save.delete()
+        game.keypressed("escape")
+        game.keypressed("down")
+        game.keypressed("return")                      -- Save Game
+        local fuelBefore = sess.fuel
+        local essenceBefore = getPlayer():countItem("alien_essence")
+        game.keypressed("down")
+        game.keypressed("return")                      -- Load Game
+        local ls = getSession()
+        local lp = getPlayer()
+        local lw = getWorld()
+        check("load restores location and progress", ls ~= sess and ls.location == "cinder" and ls.fragments.cinder == true
+            and ls:hasUpgrade("armor_plating") and ls.fuel == fuelBefore, ("%s frags %d fuel %s"):format(ls.location, ls:fragmentCount(), ls.fuel))
+        check("load restores story flags", ls.flags.varro_contact == true and ls.flags.defied_varro == true and ls.flags.met_quill == true)
+        check("load restores gear and items", lp.maxHealth == 125 and lp:countItem("alien_essence") == essenceBefore, lp.maxHealth)
+        check("load restores the opened vault", lw.vault and lw.vault.solved and lw.vault.collected)
+        check("load does not replay arrival dialogue", state() == "playing", state())
+        local visitedWorlds = 0
+        for _ in pairs(upvalue(enterLocation, "worlds")) do visitedWorlds = visitedWorlds + 1 end
+        check("load restores every visited world", visitedWorlds == 3, visitedWorlds)
+        Save.delete()
         check("taking a fragment updates the campaign", sess.fragments.cinder == true and sess:fragmentCount() == 1
             and getPlayer():countItem("salvage") == salvageBefore + 3, sess:fragmentCount())
         sim.phase = "death"
@@ -800,6 +824,17 @@ local function step()
         check("choosing shows the ending", state() == "ending" and upvalue(drawEnding, "endingId") == "dawn", state())
         game.keypressed("return")
         check("Enter returns to the title screen after the ending", state() == "menu", state())
+        
+        -- Bad save files fail cleanly
+        local Save = require("src.save.save")
+        Save.write({version = 1})
+        local oldData, oldErr = Save.read()
+        check("saves from an older version are rejected", oldData == nil and tostring(oldErr):find("version") ~= nil, tostring(oldErr))
+        Save.write({version = Save.VERSION, player = {}})
+        local loaded = loadSavedGame()
+        check("a damaged save fails without crashing", loaded == false and state() == "menu"
+            and tostring(upvalue(drawMenu, "titleMessage")):find("damaged") ~= nil, tostring(upvalue(drawMenu, "titleMessage")))
+        Save.delete()
         sim.phase = "done"
     end
 end
