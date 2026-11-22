@@ -256,6 +256,16 @@ local function runUnitTests()
     end
     check("drones keep formation spacing", minDist >= 50 * 0.8, minDist)
     check("enemy debug rings are off by default", Enemy.debug == false)
+
+    -- Weapons are per player; upgrades affect only the owner
+    local pa, pb = Player.new(0, 0), Player.new(0, 0)
+    local baseDamage = pb.weapons.laser_pistol.damage
+    Loot.new(0, 0, "weapon_upgrade"):applyEffect(pa)  -- current weapon is the laser pistol
+    check("weapon upgrade raises current weapon damage", pa.weapons.laser_pistol.damage == baseDamage + 5 and pa.weaponLevels.laser_pistol == 2,
+        pa.weapons.laser_pistol.damage)
+    check("upgrades do not leak to other players", pb.weapons.laser_pistol.damage == baseDamage and Player.new(0, 0).weapons.laser_pistol.damage == baseDamage)
+    for _ = 1, 20 do pa:upgradeWeapon("plasma_rifle", 1) end
+    check("weapon level is capped at 10", pa.weaponLevels.plasma_rifle == 10, pa.weaponLevels.plasma_rifle)
 end
 
 function love.load(args)

@@ -1,5 +1,10 @@
+local Utils = require("src.utils.utils")
+
 local Player = {}
 Player.__index = Player
+
+-- Highest level a weapon can be upgraded to
+local MAX_WEAPON_LEVEL = 10
 
 -- Player configuration
 local config = {
@@ -122,7 +127,12 @@ function Player.new(x, y)
     
     -- Equipment
     self.currentWeapon = "laser_pistol"
-    self.weapons = config.weapons
+    -- Each player owns a copy of the weapon stats so upgrades never leak between players
+    self.weapons = Utils.copyTable(config.weapons)
+    self.weaponLevels = {}
+    for name in pairs(self.weapons) do
+        self.weaponLevels[name] = 1
+    end
     self.fireTimer = 0
     self.projectiles = {}
     self.effects = {}
@@ -336,6 +346,17 @@ function Player:addEffect(effectType, x, y, angle)
     }
     
     table.insert(self.effects, effect)
+end
+
+-- Raise a weapon's damage; returns false once it is at the maximum level
+function Player:upgradeWeapon(weaponName, damageBonus)
+    local weapon = self.weapons[weaponName]
+    if not weapon or self.weaponLevels[weaponName] >= MAX_WEAPON_LEVEL then
+        return false
+    end
+    weapon.damage = weapon.damage + damageBonus
+    self.weaponLevels[weaponName] = self.weaponLevels[weaponName] + 1
+    return true
 end
 
 function Player:switchWeapon(weaponName)

@@ -169,8 +169,8 @@ function Loot:applyEffect(player)
             player.shield = player.maxShield
         end
     elseif self.item.type == "upgrade" then
-        -- TODO: Implement weapon upgrade system
-        -- This will be implemented when we create the weapon upgrade system
+        -- Weapon upgrades boost the weapon currently in hand
+        player:upgradeWeapon(player.currentWeapon, self.item.value)
     end
     
     self.isCollected = true

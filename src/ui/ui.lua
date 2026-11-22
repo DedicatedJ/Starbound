@@ -92,7 +92,9 @@ function UI:drawHUD()
         
         -- Draw weapon info
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print("Weapon: " .. p.weapons[p.currentWeapon].name, x, y + step * 3 + 5)
+        local level = p.weaponLevels and p.weaponLevels[p.currentWeapon] or 1
+        local label = p.weapons[p.currentWeapon].name .. (level > 1 and (" +" .. (level - 1)) or "")
+        love.graphics.print("Weapon: " .. label, x, y + step * 3 + 5)
     end
     
     -- Restore color
