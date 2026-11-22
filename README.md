@@ -8,6 +8,10 @@ Ten years ago your mother, the explorer Mara Solis, flew into the dark and never
 
 The story, characters, puzzles, planets and upgrades were drafted from that premise and live in data files under `src/data/` so they are easy to revise.
 
+## Lore
+
+The game's lore lives in [`lore/`](lore/), an [Obsidian](https://obsidian.md/) vault: one linked note per character, place, item, faction, event and ending, plus a timeline and a list of open questions. Open the `lore` folder as a vault in Obsidian and start at `Home.md`. Change the lore there first, then update the matching file under `src/data/`.
+
 ## Features
 
 - **Six locations** on Mara's star map: the landing planet Kepler Reach, the Drift Station hub, three planets hiding vaults (Cinder, Glacius, Verdant Deep) and the Rift.

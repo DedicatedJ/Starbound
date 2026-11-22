@@ -1,0 +1,21 @@
+---
+type: ending
+status: draft
+aliases: []
+in-game:
+  - "src/data/story.lua (endings.tyrant)"
+tags:
+  - lore/ending
+---
+
+# Varro's Crown
+
+**Choice:** Hand the Arkadia to Captain Varro.
+**Requires:** accepting [[Captain Varro]]'s deal on [[Cinder]] (flag `pirate_deal`)
+
+Varro's fleet arrives within the hour. He turns the Arkadia's engines from healing to burning. Within a year every world flies his colours. Mara keeps holding the Rift shut for a galaxy that has forgotten her name.
+
+## Consequences
+- [[Varro's Crews]] rule the galaxy.
+- The Arkadia becomes a weapon.
+- [[Mara Solis]] stays in the core, forgotten.

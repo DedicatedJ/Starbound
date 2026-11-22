@@ -25,3 +25,6 @@ dist/
 
 # Logs
 *.log 
+# Obsidian (lore vault): keep shared settings, ignore per-user state
+lore/.obsidian/*
+!lore/.obsidian/templates.json
