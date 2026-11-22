@@ -1,8 +1,6 @@
-# Starbound Legacy
+# The Last Starchart
 
 A retro-style top-down action adventure with RPG elements, built with LÖVE 2D. All graphics are drawn with shapes; there are no image or audio assets.
-
-> **Name:** "Starbound" is also the name of an existing commercial game. Whether to rename this project is an open decision; see [BLOCKED.md](BLOCKED.md).
 
 ## Story
 
@@ -110,7 +108,7 @@ The game is structured as follows:
   - `utils/` - Utility functions
 - `tests/harness/` - Test harness (run with LÖVE, see Running the Tests)
 
-Saves are written to LÖVE's save directory under `starbound_legacy` (for example `%APPDATA%\LOVE\starbound_legacy` on Windows).
+Saves are written to LÖVE's save directory under `last_starchart` (for example `%APPDATA%\LOVE\last_starchart` on Windows).
 
 ## Contributing
 

@@ -1,4 +1,4 @@
--- Test harness for Starbound Legacy.
+-- Test harness for The Last Starchart.
 --
 -- Loads the real game (main.lua and src/), stubs keyboard and mouse input,
 -- runs unit checks on the game modules, then plays through the tutorial,
