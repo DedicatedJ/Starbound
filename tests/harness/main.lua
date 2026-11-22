@@ -317,6 +317,19 @@ local function runUnitTests()
     ui.showMap = true
     local okMap, errMap = pcall(function() ui:draw() end)
     check("map draws without error", okMap, errMap)
+
+    -- Save serializer
+    local Save = require("src.save.save")
+    local sample = {a = 1, b = -2.5, s = "quote \" and\nnewline", t = true, f = false, list = {3, 2, 1}, nested = {x = {y = "z"}}}
+    local back = Save.deserialize(Save.serialize(sample))
+    check("save serializer round-trips nested data", back and back.b == -2.5 and back.s == sample.s and back.f == false
+        and back.list[3] == 1 and back.nested.x.y == "z")
+    local bad1 = Save.deserialize("return os.exit()")
+    local bad2 = Save.deserialize("while true do end return {}")
+    local bad3 = Save.deserialize("return 42")
+    check("tampered saves cannot call functions", bad1 == nil)
+    check("runaway save code is stopped", bad2 == nil)
+    check("non-table saves are rejected", bad3 == nil)
 end
 
 function love.load(args)
@@ -416,13 +429,48 @@ local function step()
             tutorialDone = true
             check("tutorial completes after defeating enemies", true)
             check("state switches to playing after tutorial", state() == "playing", state())
-            sim.phase = "death"
+            sim.phase = "save"
         elseif t > 120 then
             check("tutorial completes after defeating enemies", false, ("t=%.1f spawn=%s state=%s step=%s enemies=%d health=%.0f"):format(t, tostring(spawnSeen), tostring(state()), tostring(world.tutorial.currentStep), #world.enemies, player.health))
             sim.phase = "death"
         end
         game.update(DT)
+    elseif sim.phase == "save" then
+        -- Save through the pause menu, change things, then load through the pause menu
+        local Save = require("src.save.save")
+        Save.delete()
+        player:addItem("alien_essence"); player:addItem("alien_essence"); player:addItem("alien_essence")
+        player:upgradeWeapon("plasma_rifle", 5)
+        player.health = 77
+        local savedX, savedY, savedSeed = player.x, player.y, world.seed
+        local savedDamage = player.weapons.plasma_rifle.damage
+        local exploredBefore = 0
+        for _ in pairs(world.explored) do exploredBefore = exploredBefore + 1 end
+
+        game.keypressed("escape")
+        game.keypressed("down")                        -- Save Game
+        game.keypressed("return")
+        local u = upvalue(updateGame, "ui")
+        check("pause menu saves the game", Save.exists() and u.menuMessage == "Game saved", tostring(u.menuMessage))
+
+        player.health = 1
+        player.inventory = {}
+        player.x = player.x + 5000
+        game.keypressed("down")                        -- Load Game
+        game.keypressed("return")
+        local np, nw = getPlayer(), getWorld()
+        local exploredAfter = 0
+        for _ in pairs(nw.explored) do exploredAfter = exploredAfter + 1 end
+        check("load restores the player", np.health == 77 and np:countItem("alien_essence") == 3
+            and np.weapons.plasma_rifle.damage == savedDamage and math.abs(np.x - savedX) < 1e-6 and math.abs(np.y - savedY) < 1e-6,
+            ("hp=%s essence=%s dmg=%s"):format(np.health, np:countItem("alien_essence"), np.weapons.plasma_rifle.damage))
+        check("load restores the world", nw.seed == savedSeed and exploredAfter == exploredBefore and exploredAfter > 0,
+            ("seed %s/%s explored %d/%d"):format(nw.seed, savedSeed, exploredAfter, exploredBefore))
+        check("load resumes play", state() == "playing", state())
+        Save.delete()
+        sim.phase = "death"
     elseif sim.phase == "death" then
+        player = getPlayer()
         player.health = 0
         game.update(DT)
         check("zero health triggers game over", state() == "game_over", state())

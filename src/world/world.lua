@@ -98,6 +98,7 @@ function World.new(options)
     self.explored = {}          -- chunk keys the player has visited (for the map)
     self.startChunkKey = nil    -- the chunk the player starts in has no enemies
     self.spawnEnemies = options.spawnEnemies ~= false
+    self.clearedKeys = {}       -- chunk keys cleared in a loaded save
 
     -- The seed drives all procedural generation, so a world can be rebuilt exactly from it
     self.seed = options.seed or love.math.random(1, 2147483646)
@@ -368,6 +369,7 @@ function World:getChunk(chunkX, chunkY)
     local chunk = self.chunks[key]
     if not chunk then
         chunk = self:generateChunk(chunkX, chunkY)
+        chunk.cleared = self.clearedKeys[key] or nil
         self.chunks[key] = chunk
     end
     return chunk

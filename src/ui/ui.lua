@@ -24,7 +24,13 @@ function UI.new(player, world)
     self.showInventory = false
     self.showMap = false
     self.showMenu = false
-    
+
+    -- Pause menu
+    self.menuOptions = {"Resume", "Save Game", "Load Game", "Quit"}
+    self.menuIndex = 1
+    self.menuMessage = nil
+    self.menuMessageTimer = 0
+
     -- UI elements
     self.elements = {}
     
@@ -45,6 +51,13 @@ function UI:removeElement(element)
 end
 
 function UI:update(dt)
+    if self.menuMessageTimer > 0 then
+        self.menuMessageTimer = self.menuMessageTimer - dt
+        if self.menuMessageTimer <= 0 then
+            self.menuMessage = nil
+        end
+    end
+
     -- Update all UI elements
     for _, element in ipairs(self.elements) do
         if element.update then
@@ -239,25 +252,64 @@ function UI:drawMap()
     love.graphics.setColor(r, g, b, a)
 end
 
+-- Screen rectangle of a pause menu option
+function UI:menuOptionRect(index)
+    local centerX, centerY = love.graphics.getWidth() / 2, love.graphics.getHeight() / 2
+    return centerX - 100, centerY - 10 + (index - 1) * 36, 200, 30
+end
+
+function UI:menuOptionAt(sx, sy)
+    if not self.showMenu then return nil end
+    for i = 1, #self.menuOptions do
+        local x, y, w, h = self:menuOptionRect(i)
+        if sx >= x and sx <= x + w and sy >= y and sy <= y + h then
+            return i
+        end
+    end
+    return nil
+end
+
+function UI:menuMove(delta)
+    self.menuIndex = (self.menuIndex - 1 + delta) % #self.menuOptions + 1
+end
+
+function UI:menuSelected()
+    return self.menuOptions[self.menuIndex]
+end
+
+-- Short status line under the menu ("Game saved", ...)
+function UI:showMenuMessage(text)
+    self.menuMessage = text
+    self.menuMessageTimer = 3
+end
+
 function UI:drawMenu()
-    -- Save current color
     local r, g, b, a = love.graphics.getColor()
-    
-    -- Draw menu background
+    local screenW, screenH = love.graphics.getWidth(), love.graphics.getHeight()
+
     love.graphics.setColor(0, 0, 0, 0.8)
-    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-    
-    -- Draw menu options
+    love.graphics.rectangle("fill", 0, 0, screenW, screenH)
+
     love.graphics.setColor(1, 1, 1)
-    local centerX = love.graphics.getWidth() / 2
-    local centerY = love.graphics.getHeight() / 2
-    love.graphics.print("PAUSED", centerX - 50, centerY - 50, 0, 2)
-    love.graphics.print("Resume", centerX - 50, centerY, 0, 1)
-    love.graphics.print("Save Game", centerX - 50, centerY + 30, 0, 1)
-    love.graphics.print("Load Game", centerX - 50, centerY + 60, 0, 1)
-    love.graphics.print("Quit", centerX - 50, centerY + 90, 0, 1)
-    
-    -- Restore color
+    love.graphics.printf("PAUSED", 0, screenH / 2 - 80, screenW / 2, "center", 0, 2)
+    for i, option in ipairs(self.menuOptions) do
+        local x, y, w, h = self:menuOptionRect(i)
+        if i == self.menuIndex then
+            love.graphics.setColor(1, 1, 1, 0.2)
+            love.graphics.rectangle("fill", x, y, w, h)
+        end
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.printf(option, x, y + 8, w, "center")
+    end
+    love.graphics.setColor(0.8, 0.8, 0.8)
+    love.graphics.printf("Up/Down or mouse to choose, Enter or click to select, Esc to resume",
+        0, screenH - 25, screenW, "center")
+    if self.menuMessage then
+        love.graphics.setColor(1, 1, 0.4)
+        local _, lastY = self:menuOptionRect(#self.menuOptions)
+        love.graphics.printf(self.menuMessage, 0, lastY + 50, screenW, "center")
+    end
+
     love.graphics.setColor(r, g, b, a)
 end
 
@@ -271,6 +323,8 @@ end
 
 function UI:toggleMenu()
     self.showMenu = not self.showMenu
+    self.menuIndex = 1
+    self.menuMessage = nil
 end
 
 function UI:mousepressed(x, y, button)

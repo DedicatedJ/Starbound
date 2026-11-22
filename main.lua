@@ -6,6 +6,7 @@ local Player = require("src.entities.player")
 local World = require("src.world.world")
 local UI = require("src.ui.ui")
 local Enemy = require("src.entities.enemy")
+local Save = require("src.save.save")
 
 -- Game states
 local gameState = {
@@ -21,6 +22,9 @@ local currentState = gameState.MENU
 
 -- State to return to when unpausing (PLAYING or TUTORIAL)
 local stateBeforePause = gameState.PLAYING
+
+-- Message shown on the title screen (for example when loading fails)
+local titleMessage = nil
 
 -- Game objects
 local player
@@ -47,12 +51,12 @@ function love.load()
 end
 
 -- Initialize game systems
-function initializeGame()
+function initializeGame(worldOptions)
     -- Create player at center of screen
     player = Player.new(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
-    
+
     -- Create world
-    world = World.new()
+    world = World.new(worldOptions)
     world:addEntity(player)
     
     -- Create UI
@@ -60,6 +64,109 @@ function initializeGame()
 
     -- Start the camera on the player
     camera.x, camera.y = player.x, player.y
+end
+
+-- Everything needed to restore the current game
+function gatherSaveState()
+    local function keys(set)
+        local list = {}
+        for key, value in pairs(set) do
+            if value then table.insert(list, key) end
+        end
+        table.sort(list)
+        return list
+    end
+    local cleared = {}
+    for key, chunk in pairs(world.chunks) do
+        if chunk.cleared then cleared[key] = true end
+    end
+    for key in pairs(world.clearedKeys) do cleared[key] = true end
+
+    local weaponDamage = {}
+    for name, weapon in pairs(player.weapons) do
+        weaponDamage[name] = weapon.damage
+    end
+    local inventory = {}
+    for i, stack in ipairs(player.inventory) do
+        inventory[i] = {type = stack.type, count = stack.count}
+    end
+
+    return {
+        version = Save.VERSION,
+        seed = world.seed,
+        tutorialCompleted = world.tutorial.completed or not world.tutorial.enabled,
+        player = {
+            x = player.x, y = player.y,
+            health = player.health, shield = player.shield, energy = player.energy,
+            currentWeapon = player.currentWeapon,
+            weaponDamage = weaponDamage,
+            weaponLevels = player.weaponLevels,
+            inventory = inventory
+        },
+        world = {
+            startChunkKey = world.startChunkKey,
+            startChunk = world.startChunk,
+            explored = keys(world.explored),
+            cleared = keys(cleared)
+        }
+    }
+end
+
+-- Rebuild the game from saved data
+function applySaveState(data)
+    initializeGame({seed = data.seed, tutorial = not data.tutorialCompleted})
+
+    local saved = data.player
+    player.x, player.y = saved.x, saved.y
+    player.health, player.shield, player.energy = saved.health, saved.shield, saved.energy
+    player:switchWeapon(saved.currentWeapon)
+    for name, damage in pairs(saved.weaponDamage or {}) do
+        if player.weapons[name] then player.weapons[name].damage = damage end
+    end
+    for name, level in pairs(saved.weaponLevels or {}) do
+        if player.weaponLevels[name] then player.weaponLevels[name] = level end
+    end
+    player.inventory = {}
+    for i, stack in ipairs(saved.inventory or {}) do
+        player.inventory[i] = {type = stack.type, count = stack.count}
+    end
+
+    world.startChunkKey = data.world.startChunkKey
+    world.startChunk = data.world.startChunk
+    for _, key in ipairs(data.world.explored or {}) do world.explored[key] = true end
+    for _, key in ipairs(data.world.cleared or {}) do world.clearedKeys[key] = true end
+
+    camera.x, camera.y = player.x, player.y
+    currentState = data.tutorialCompleted and gameState.PLAYING or gameState.TUTORIAL
+end
+
+-- Carry out a pause menu choice
+function activateMenuOption(option)
+    if option == "Resume" then
+        currentState = stateBeforePause
+        ui:toggleMenu()
+    elseif option == "Save Game" then
+        local ok, err = Save.write(gatherSaveState())
+        ui:showMenuMessage(ok and "Game saved" or ("Save failed: " .. tostring(err)))
+    elseif option == "Load Game" then
+        loadSavedGame()
+    elseif option == "Quit" then
+        love.event.quit()
+    end
+end
+
+-- Load the save file; on failure, show why (in the pause menu if it is open)
+function loadSavedGame()
+    local data, err = Save.read()
+    if data then
+        applySaveState(data)
+        return true
+    end
+    if ui and ui.showMenu then
+        ui:showMenuMessage("Load failed: " .. tostring(err))
+    end
+    titleMessage = "Load failed: " .. tostring(err)
+    return false
 end
 
 -- Update game state
@@ -91,6 +198,14 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "f3" then
         -- Toggle enemy AI debug rings
         Enemy.debug = not Enemy.debug
+    elseif currentState == gameState.PAUSED and (key == "up" or key == "w") then
+        ui:menuMove(-1)
+    elseif currentState == gameState.PAUSED and (key == "down" or key == "s") then
+        ui:menuMove(1)
+    elseif currentState == gameState.PAUSED and (key == "return" or key == "kpenter" or key == "space") then
+        activateMenuOption(ui:menuSelected())
+    elseif key == "l" and currentState == gameState.MENU then
+        loadSavedGame()
     elseif key == "escape" then
         if currentState == gameState.PLAYING or currentState == gameState.TUTORIAL then
             stateBeforePause = currentState
@@ -127,6 +242,15 @@ end
 
 -- Handle mouse input
 function love.mousepressed(x, y, button)
+    if currentState == gameState.PAUSED then
+        local option = ui:menuOptionAt(x, y)
+        if option and button == 1 then
+            ui.menuIndex = option
+            activateMenuOption(ui:menuSelected())
+        end
+        return
+    end
+
     local inGame = currentState == gameState.PLAYING or currentState == gameState.TUTORIAL
     if inGame and ui.showInventory then
         -- Inventory open: click uses an item, right-click drops it; no firing
@@ -231,11 +355,23 @@ function drawMenu()
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     love.graphics.print("Starbound Legacy", w / 2 - 100, h / 2 - 50, 0, 2)
     love.graphics.print("Press SPACE to Start Tutorial", w / 2 - 100, h / 2 + 50, 0, 1)
+    if Save.exists() then
+        love.graphics.print("Press L to Load Saved Game", w / 2 - 100, h / 2 + 75, 0, 1)
+    end
+    if titleMessage then
+        love.graphics.setColor(1, 0.5, 0.5)
+        love.graphics.print(titleMessage, w / 2 - 100, h / 2 + 100, 0, 1)
+    end
 end
 
 -- Update paused state
 function updatePaused(dt)
-    -- TODO: Update pause menu
+    -- Hovering the mouse over an option selects it
+    local option = ui:menuOptionAt(love.mouse.getPosition())
+    if option then
+        ui.menuIndex = option
+    end
+    ui:update(dt)
 end
 
 -- Draw paused state
