@@ -55,6 +55,8 @@ local DT = 1 / 60
 local function state() return upvalue(game.update, "currentState") end
 local function getPlayer() return upvalue(updateGame, "player") end
 local function getWorld() return upvalue(updateGame, "world") end
+local function getSession() return upvalue(travelToSelected, "session") end
+local function getStarMap() return upvalue(openStarMap, "starMap") end
 
 local function runUnitTests()
     local Player = require("src.entities.player")
@@ -354,6 +356,42 @@ local function runUnitTests()
     local logged = love.filesystem.read("debug.log") or ""
     love.filesystem.remove("debug.log")
     check("debugPrint writes non-string values to debug.log", okDebug and logged:find("x 1 nil true", 1, true) ~= nil, logged)
+
+    -- Travel rules
+    local Session = require("src.game.session")
+    local s = Session.new(1)
+    check("can jump from Kepler Reach to Drift Station", (s:canTravel("drift_station")))
+    local okFar, _, whyFar = s:canTravel("glacius")
+    check("far planets are out of base jump range", not okFar and whyFar:find("range") ~= nil, whyFar)
+    s:travel("drift_station")
+    check("docking at the station refuels", s.fuel == s:maxFuel() and s.location == "drift_station")
+    s.upgrades.jump_drive = true
+    check("jump drive upgrade extends range", (s:canTravel("glacius")))
+    s.location = "glacius"
+    local okRift, _, whyRift = s:canTravel("the_rift")
+    check("the Rift needs all fragments", not okRift and whyRift:find("fragments") ~= nil, whyRift)
+    s.fragments = {cinder = true, glacius = true, verdant_deep = true}
+    okRift, _, whyRift = s:canTravel("the_rift")
+    check("the Rift needs void shielding", not okRift and whyRift:find("Void Shielding") ~= nil, whyRift)
+    s.upgrades.void_shielding = true
+    check("the Rift opens with fragments and shielding", (s:canTravel("the_rift")))
+    s.location, s.fuel = "cinder", 0
+    local okTow, towCost = s:canTravel("drift_station")
+    check("out of fuel: free tow to Drift Station", okTow and towCost == 0)
+    check("out of fuel: no other jumps", not (s:canTravel("kepler_reach")))
+    local s2 = Session.fromSave(s:serialize())
+    check("session survives save and load", s2.location == "cinder" and s2.fuel == 0 and s2:fragmentCount() == 3
+        and s2:hasUpgrade("void_shielding") and s2.seed == s.seed)
+
+    -- Bounded worlds and interactables
+    w = World.new({spawnEnemies = false, tutorial = false, bounds = World.chunkBounds(1)})
+    p = Player.new(5000, -5000)
+    w:addEntity(p)
+    w:update(DT)
+    check("bounded worlds keep the player inside", p.x <= w.bounds.x1 - 20 and p.y >= w.bounds.y0 + 20, ("%.0f,%.0f"):format(p.x, p.y))
+    local used = false
+    w:addInteractable({x = 0, y = 0, radius = 50, onInteract = function() used = true end})
+    check("nearest interactable within radius", w:nearestInteractable(10, 10) ~= nil and w:nearestInteractable(200, 200) == nil)
 end
 
 function love.load(args)
@@ -492,6 +530,50 @@ local function step()
             ("seed %s/%s explored %d/%d"):format(nw.seed, savedSeed, exploredAfter, exploredBefore))
         check("load resumes play", state() == "playing", state())
         Save.delete()
+        sim.phase = "travel"
+    elseif sim.phase == "travel" then
+        -- Walk to the ship, open the star map, jump to Drift Station and back
+        player = getPlayer()
+        local homeWorld = getWorld()
+        local exploredHome = 0
+        for _ in pairs(homeWorld.explored) do exploredHome = exploredHome + 1 end
+        local ship = homeWorld:findInteractable("ship")
+        player.x, player.y = ship.x + 10, ship.y
+        game.update(DT)
+        check("ship shows an interaction prompt", upvalue(updateGame, "ui").prompt ~= nil)
+        game.keypressed("e")
+        check("E at the ship opens the star map", state() == "starmap", state())
+        local map = getStarMap()
+        local function selectLocation(id)
+            for _ = 1, 8 do
+                if map:selectedLocation().id == id then return true end
+                game.keypressed("right")
+            end
+            return false
+        end
+        selectLocation("drift_station")
+        game.keypressed("return")
+        local sess = getSession()
+        check("jump to Drift Station", state() == "playing" and sess.location == "drift_station" and getWorld() ~= homeWorld,
+            tostring(sess.location))
+        check("fuel is full after docking", sess.fuel == sess:maxFuel(), sess.fuel)
+        player = getPlayer()
+        player.x = 99999
+        game.update(DT)
+        check("station deck bounds hold the player", player.x < 2000, player.x)
+
+        local stationShip = getWorld():findInteractable("ship")
+        player.x, player.y = stationShip.x, stationShip.y
+        game.keypressed("e")
+        selectLocation("the_rift")
+        game.keypressed("return")
+        check("the Rift is locked at the start", state() == "starmap" and (map.message or ""):find("fragments") ~= nil, tostring(map.message))
+        selectLocation("kepler_reach")
+        game.keypressed("return")
+        local exploredBack = 0
+        for _ in pairs(getWorld().explored) do exploredBack = exploredBack + 1 end
+        check("returning keeps the planet as it was", getWorld() == homeWorld and exploredBack >= exploredHome and sess.fuel == sess:maxFuel() - 1,
+            ("explored %d/%d fuel %d"):format(exploredBack, exploredHome, sess.fuel))
         sim.phase = "death"
     elseif sim.phase == "death" then
         player = getPlayer()

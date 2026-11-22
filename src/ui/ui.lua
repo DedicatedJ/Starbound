@@ -20,6 +20,8 @@ function UI.new(player, world)
     -- Player whose stats the HUD shows, and the world the map shows
     self.player = player
     self.world = world
+    self.session = nil   -- campaign session (location, fuel), set by the game
+    self.prompt = nil    -- interaction prompt such as "[E] Open star map"
     
     -- UI state
     self.showInventory = false
@@ -113,6 +115,25 @@ function UI:drawHUD()
         local level = p.weaponLevels and p.weaponLevels[p.currentWeapon] or 1
         local label = p.weapons[p.currentWeapon].name .. (level > 1 and (" +" .. (level - 1)) or "")
         love.graphics.print("Weapon: " .. label, x, y + step * 3 + 5)
+    end
+
+    -- Location and ship status, top right
+    if self.session then
+        local loc = self.session:currentLocation()
+        local screenW = love.graphics.getWidth()
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.printf(loc.name, screenW - 260, config.padding, 250, "right")
+        love.graphics.printf(("Fuel %d/%d   Fragments %d/3"):format(self.session.fuel, self.session:maxFuel(), self.session:fragmentCount()),
+            screenW - 260, config.padding + 18, 250, "right")
+    end
+
+    -- Interaction prompt, bottom center
+    if self.prompt then
+        local screenW, screenH = love.graphics.getWidth(), love.graphics.getHeight()
+        love.graphics.setColor(0, 0, 0, 0.6)
+        love.graphics.rectangle("fill", screenW / 2 - 180, screenH - 110, 360, 28)
+        love.graphics.setColor(1, 1, 0.6)
+        love.graphics.printf(self.prompt, screenW / 2 - 180, screenH - 103, 360, "center")
     end
     
     -- Restore color

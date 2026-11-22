@@ -7,6 +7,8 @@ local World = require("src.world.world")
 local UI = require("src.ui.ui")
 local Enemy = require("src.entities.enemy")
 local Save = require("src.save.save")
+local Session = require("src.game.session")
+local StarMap = require("src.ui.starmap")
 
 -- Game states
 local gameState = {
@@ -14,6 +16,7 @@ local gameState = {
     PLAYING = "playing",
     PAUSED = "paused",
     TUTORIAL = "tutorial",
+    STARMAP = "starmap",
     GAME_OVER = "game_over"
 }
 
@@ -27,9 +30,12 @@ local stateBeforePause = gameState.PLAYING
 local titleMessage = nil
 
 -- Game objects
+local session     -- campaign state: location, fuel, upgrades, story
+local worlds      -- location id -> World, kept while the game runs
 local player
-local world
+local world       -- the world the player is in now
 local ui
+local starMap
 
 -- Camera center in world coordinates; it follows the player
 local camera = {x = 0, y = 0}
@@ -45,25 +51,101 @@ end
 
 -- Initialize game (window size, title and resizing come from conf.lua)
 function love.load()
-    
-    -- Initialize game systems
     initializeGame()
 end
 
--- Initialize game systems
-function initializeGame(worldOptions)
-    -- Create player at center of screen
-    player = Player.new(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
+-- Start a new campaign; options.seed picks the galaxy, options.tutorial=false skips the tutorial
+function initializeGame(options)
+    options = options or {}
+    session = Session.new(options.seed)
+    worlds = {}
+    world = nil
 
-    -- Create world
-    world = World.new(worldOptions)
+    local lx, ly = World.landingSite()
+    player = Player.new(lx, ly)
+    ui = UI.new(player, nil)
+    ui.session = session
+    starMap = StarMap.new(session)
+
+    enterLocation(session.location, {tutorial = options.tutorial ~= false})
+end
+
+-- Build the world for a location and place its fixed objects
+function createWorld(id, tutorial)
+    local loc = Session.locationData(id)
+    local newWorld = World.new({
+        seed = session:locationSeed(id),
+        biomes = loc.biomes,
+        tutorial = tutorial == true,
+        spawnEnemies = not loc.safe,
+        levelBonus = loc.levelBonus or 0,
+        bounds = loc.kind == "station" and World.chunkBounds(1) or nil
+    })
+
+    -- Every location has the ship at the landing site
+    local lx, ly = World.landingSite()
+    newWorld:addInteractable({
+        id = "ship", kind = "ship", label = "Your ship",
+        x = lx - 60, y = ly, radius = 70,
+        prompt = "[E] Open the star map",
+        onInteract = function() openStarMap() end
+    })
+    return newWorld
+end
+
+-- Move the player to a location (creating its world on the first visit)
+function enterLocation(id, options)
+    options = options or {}
+    if world then
+        world:removeEntity(player)
+    end
+    world = worlds[id]
+    if not world then
+        world = createWorld(id, options.tutorial)
+        worlds[id] = world
+    end
     world:addEntity(player)
-    
-    -- Create UI
-    ui = UI.new(player, world)
+    session.location = id
 
-    -- Start the camera on the player
+    if not options.keepPosition then
+        -- Step off the ship
+        local lx, ly = World.landingSite()
+        player.x, player.y = lx, ly
+    end
+    player.projectiles = {}
+    player.velocity.x, player.velocity.y = 0, 0
+
+    ui.world = world
     camera.x, camera.y = player.x, player.y
+end
+
+function openStarMap()
+    starMap:open()
+    currentState = gameState.STARMAP
+end
+
+-- Jump to the location selected on the star map
+function travelToSelected()
+    local target = starMap:selectedLocation()
+    local ok, reason = session:travel(target.id)
+    if not ok then
+        starMap.message = reason
+        return false
+    end
+    enterLocation(target.id)
+    currentState = gameState.PLAYING
+    return true
+end
+
+-- Use the nearest interactable, if any
+function interact()
+    local obj = world:nearestInteractable(player.x, player.y)
+    if not obj then return false end
+    if world:tutorialActive() then
+        return false
+    end
+    obj.onInteract(obj)
+    return true
 end
 
 -- Everything needed to restore the current game
@@ -76,11 +158,23 @@ function gatherSaveState()
         table.sort(list)
         return list
     end
-    local cleared = {}
-    for key, chunk in pairs(world.chunks) do
-        if chunk.cleared then cleared[key] = true end
+
+    local worldStates = {}
+    for id, w in pairs(worlds) do
+        local cleared = {}
+        for key, chunk in pairs(w.chunks) do
+            if chunk.cleared then cleared[key] = true end
+        end
+        for key in pairs(w.clearedKeys) do cleared[key] = true end
+        worldStates[id] = {
+            tutorialCompleted = w.tutorial.completed or not w.tutorial.enabled,
+            startChunkKey = w.startChunkKey,
+            startChunk = w.startChunk,
+            explored = keys(w.explored),
+            cleared = keys(cleared),
+            state = w.saveState and w:saveState() or nil
+        }
     end
-    for key in pairs(world.clearedKeys) do cleared[key] = true end
 
     local weaponDamage = {}
     for name, weapon in pairs(player.weapons) do
@@ -93,31 +187,31 @@ function gatherSaveState()
 
     return {
         version = Save.VERSION,
-        seed = world.seed,
-        tutorialCompleted = world.tutorial.completed or not world.tutorial.enabled,
+        session = session:serialize(),
         player = {
             x = player.x, y = player.y,
             health = player.health, shield = player.shield, energy = player.energy,
+            maxHealth = player.maxHealth, maxShield = player.maxShield, maxEnergy = player.maxEnergy,
             currentWeapon = player.currentWeapon,
             weaponDamage = weaponDamage,
             weaponLevels = player.weaponLevels,
             inventory = inventory
         },
-        world = {
-            startChunkKey = world.startChunkKey,
-            startChunk = world.startChunk,
-            explored = keys(world.explored),
-            cleared = keys(cleared)
-        }
+        worlds = worldStates
     }
 end
 
 -- Rebuild the game from saved data
 function applySaveState(data)
-    initializeGame({seed = data.seed, tutorial = not data.tutorialCompleted})
+    session = Session.fromSave(data.session)
+    worlds = {}
+    world = nil
 
     local saved = data.player
-    player.x, player.y = saved.x, saved.y
+    player = Player.new(saved.x, saved.y)
+    player.maxHealth = saved.maxHealth or player.maxHealth
+    player.maxShield = saved.maxShield or player.maxShield
+    player.maxEnergy = saved.maxEnergy or player.maxEnergy
     player.health, player.shield, player.energy = saved.health, saved.shield, saved.energy
     player:switchWeapon(saved.currentWeapon)
     for name, damage in pairs(saved.weaponDamage or {}) do
@@ -126,18 +220,29 @@ function applySaveState(data)
     for name, level in pairs(saved.weaponLevels or {}) do
         if player.weaponLevels[name] then player.weaponLevels[name] = level end
     end
-    player.inventory = {}
     for i, stack in ipairs(saved.inventory or {}) do
         player.inventory[i] = {type = stack.type, count = stack.count}
     end
 
-    world.startChunkKey = data.world.startChunkKey
-    world.startChunk = data.world.startChunk
-    for _, key in ipairs(data.world.explored or {}) do world.explored[key] = true end
-    for _, key in ipairs(data.world.cleared or {}) do world.clearedKeys[key] = true end
+    ui = UI.new(player, nil)
+    ui.session = session
+    starMap = StarMap.new(session)
 
-    camera.x, camera.y = player.x, player.y
-    currentState = data.tutorialCompleted and gameState.PLAYING or gameState.TUTORIAL
+    -- Recreate every visited world with its explored and cleared chunks
+    for id, ws in pairs(data.worlds or {}) do
+        if Session.locationData(id) then
+            local w = createWorld(id, not ws.tutorialCompleted)
+            w.startChunkKey = ws.startChunkKey
+            w.startChunk = ws.startChunk
+            for _, key in ipairs(ws.explored or {}) do w.explored[key] = true end
+            for _, key in ipairs(ws.cleared or {}) do w.clearedKeys[key] = true end
+            if ws.state and w.loadState then w:loadState(ws.state) end
+            worlds[id] = w
+        end
+    end
+
+    enterLocation(session.location, {keepPosition = true})
+    currentState = world:tutorialActive() and gameState.TUTORIAL or gameState.PLAYING
 end
 
 -- Carry out a pause menu choice
@@ -159,8 +264,14 @@ end
 function loadSavedGame()
     local data, err = Save.read()
     if data then
-        applySaveState(data)
-        return true
+        local ok, applyErr = pcall(applySaveState, data)
+        if ok then
+            titleMessage = nil
+            return true
+        end
+        err = "save is damaged (" .. tostring(applyErr) .. ")"
+        initializeGame()
+        currentState = gameState.MENU
     end
     if ui and ui.showMenu then
         ui:showMenuMessage("Load failed: " .. tostring(err))
@@ -169,9 +280,13 @@ function loadSavedGame()
     return false
 end
 
+local function inGame()
+    return currentState == gameState.PLAYING or currentState == gameState.TUTORIAL
+end
+
 -- Update game state
 function love.update(dt)
-    if currentState == gameState.PLAYING or currentState == gameState.TUTORIAL then
+    if inGame() then
         updateGame(dt)
     elseif currentState == gameState.MENU then
         updateMenu(dt)
@@ -182,12 +297,14 @@ end
 
 -- Draw game
 function love.draw()
-    if currentState == gameState.PLAYING or currentState == gameState.TUTORIAL then
+    if inGame() then
         drawGame()
     elseif currentState == gameState.MENU then
         drawMenu()
     elseif currentState == gameState.PAUSED then
         drawPaused()
+    elseif currentState == gameState.STARMAP then
+        starMap:draw()
     elseif currentState == gameState.GAME_OVER then
         drawGameOver()
     end
@@ -204,10 +321,20 @@ function love.keypressed(key, scancode, isrepeat)
         ui:menuMove(1)
     elseif currentState == gameState.PAUSED and (key == "return" or key == "kpenter" or key == "space") then
         activateMenuOption(ui:menuSelected())
+    elseif currentState == gameState.STARMAP then
+        if key == "left" or key == "a" or key == "up" or key == "w" then
+            starMap:move(-1)
+        elseif key == "right" or key == "d" or key == "down" or key == "s" then
+            starMap:move(1)
+        elseif key == "return" or key == "kpenter" or key == "space" then
+            travelToSelected()
+        elseif key == "escape" then
+            currentState = gameState.PLAYING
+        end
     elseif key == "l" and currentState == gameState.MENU then
         loadSavedGame()
     elseif key == "escape" then
-        if currentState == gameState.PLAYING or currentState == gameState.TUTORIAL then
+        if inGame() then
             stateBeforePause = currentState
             currentState = gameState.PAUSED
             ui:toggleMenu()
@@ -215,26 +342,28 @@ function love.keypressed(key, scancode, isrepeat)
             currentState = stateBeforePause
             ui:toggleMenu()
         end
-    elseif key == "i" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "e" and inGame() then
+        interact()
+    elseif key == "i" and inGame() then
         ui:toggleInventory()
-    elseif key == "m" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "m" and inGame() then
         ui:toggleMap()
     elseif key == "space" and currentState == gameState.MENU then
-        currentState = gameState.TUTORIAL
+        currentState = world:tutorialActive() and gameState.TUTORIAL or gameState.PLAYING
     elseif key == "r" and currentState == gameState.GAME_OVER then
         initializeGame()
         currentState = gameState.MENU
-    elseif key == "1" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "1" and inGame() then
         player:switchWeapon("laser_pistol")
-    elseif key == "2" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "2" and inGame() then
         player:switchWeapon("plasma_rifle")
-    elseif key == "3" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "3" and inGame() then
         player:switchWeapon("ion_cannon")
-    elseif key == "4" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "4" and inGame() then
         player:switchWeapon("scatter_shot")
-    elseif key == "5" and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif key == "5" and inGame() then
         player:switchWeapon("void_beam")
-    elseif (key == "6" or key == "7" or key == "8") and (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) then
+    elseif (key == "6" or key == "7" or key == "8") and inGame() then
         -- Quick-use inventory slots 1 to 3
         player:useItem(tonumber(key) - 5)
     end
@@ -251,8 +380,21 @@ function love.mousepressed(x, y, button)
         return
     end
 
-    local inGame = currentState == gameState.PLAYING or currentState == gameState.TUTORIAL
-    if inGame and ui.showInventory then
+    if currentState == gameState.STARMAP then
+        -- Click a node to select it; click the selected node again to jump
+        local node = starMap:nodeAt(x, y)
+        if node and button == 1 then
+            if node == starMap.selected then
+                travelToSelected()
+            else
+                starMap.selected = node
+                starMap.message = nil
+            end
+        end
+        return
+    end
+
+    if inGame() and ui.showInventory then
         -- Inventory open: click uses an item, right-click drops it; no firing
         local slot = ui:inventorySlotAt(x, y)
         if slot and button == 1 then
@@ -263,11 +405,11 @@ function love.mousepressed(x, y, button)
         return
     end
 
-    if inGame and button == 1 then
+    if inGame() and button == 1 then
         -- Left click to fire at the world position under the cursor
         player:fire(screenToWorld(x, y))
     end
-    
+
     if ui then
         ui:mousepressed(x, y, button)
     end
@@ -302,9 +444,17 @@ function updateGame(dt)
     camera.x = camera.x + (player.x - camera.x) * follow
     camera.y = camera.y + (player.y - camera.y) * follow
 
+    -- Interaction prompt for the nearest usable object
+    local obj = world:nearestInteractable(player.x, player.y)
+    if obj and world:tutorialActive() then
+        ui.prompt = (obj.label or "This") .. ": finish the tutorial first"
+    else
+        ui.prompt = obj and obj.prompt or nil
+    end
+
     -- Update UI
     ui:update(dt)
-    
+
     -- Check if tutorial is completed
     if currentState == gameState.TUTORIAL and world.tutorial.completed then
         currentState = gameState.PLAYING
@@ -332,7 +482,7 @@ function drawGame()
 
     -- Draw UI
     ui:draw()
-    
+
     -- Draw current weapon info
     if currentState == gameState.TUTORIAL then
         local weapon = player.weapons[player.currentWeapon]
@@ -343,9 +493,8 @@ function drawGame()
     end
 end
 
--- Update menu state
+-- Update menu state (the title screen is static)
 function updateMenu(dt)
-    -- TODO: Update menu animations, selections
 end
 
 -- Draw menu
@@ -354,7 +503,7 @@ function drawMenu()
     love.graphics.setColor(1, 1, 1)
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     love.graphics.print("Starbound Legacy", w / 2 - 100, h / 2 - 50, 0, 2)
-    love.graphics.print("Press SPACE to Start Tutorial", w / 2 - 100, h / 2 + 50, 0, 1)
+    love.graphics.print("Press SPACE to Start a New Game", w / 2 - 100, h / 2 + 50, 0, 1)
     if Save.exists() then
         love.graphics.print("Press L to Load Saved Game", w / 2 - 100, h / 2 + 75, 0, 1)
     end
@@ -391,4 +540,4 @@ function drawGameOver()
     love.graphics.printf("GAME OVER", 0, h / 2 - 40, w / 2, "center", 0, 2)
     love.graphics.setColor(1, 1, 1)
     love.graphics.printf("Press R to return to the menu", 0, h / 2 + 20, w, "center")
-end 
+end

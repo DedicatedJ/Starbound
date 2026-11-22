@@ -99,6 +99,9 @@ function World.new(options)
     self.startChunkKey = nil    -- the chunk the player starts in has no enemies
     self.spawnEnemies = options.spawnEnemies ~= false
     self.clearedKeys = {}       -- chunk keys cleared in a loaded save
+    self.levelBonus = options.levelBonus or 0
+    self.bounds = options.bounds          -- {x0, y0, x1, y1} in world pixels, or nil for open worlds
+    self.interactables = {}               -- objects the player can use with E
 
     -- The seed drives all procedural generation, so a world can be rebuilt exactly from it
     self.seed = options.seed or love.math.random(1, 2147483646)
@@ -125,6 +128,18 @@ end
 -- Main color of a biome, used by the map
 function World.biomeColor(biome)
     return config.biomes[biome] and config.biomes[biome].floor or {0.5, 0.5, 0.5}
+end
+
+-- Where the ship lands: the center of chunk (0,0)
+function World.landingSite()
+    local half = config.tileSize * config.chunkSize / 2
+    return half, half
+end
+
+-- Bounds covering the chunks within `radius` of chunk (0,0)
+function World.chunkBounds(radius)
+    local size = config.tileSize * config.chunkSize
+    return {x0 = -radius * size, y0 = -radius * size, x1 = (radius + 1) * size, y1 = (radius + 1) * size}
 end
 
 -- Size of one chunk in world pixels
@@ -200,6 +215,20 @@ function World:update(dt)
         end
     end
     
+    -- Keep the player inside bounded areas (space station decks)
+    if self.bounds then
+        local player = self:findPlayer()
+        if player then
+            player.x = math.max(self.bounds.x0 + 20, math.min(self.bounds.x1 - 20, player.x))
+            player.y = math.max(self.bounds.y0 + 20, math.min(self.bounds.y1 - 20, player.y))
+        end
+    end
+
+    -- Update interactables that animate (puzzles)
+    for _, obj in ipairs(self.interactables) do
+        if obj.update then obj:update(dt, self) end
+    end
+
     -- Update enemies
     for i = #self.enemies, 1, -1 do
         local enemy = self.enemies[i]
@@ -441,7 +470,7 @@ end
 function World:levelForChunk(chunkX, chunkY)
     local start = self.startChunk or {x = 0, y = 0}
     local distance = math.max(math.abs(chunkX - start.x), math.abs(chunkY - start.y))
-    return 1 + math.floor(distance / config.chunksPerLevel)
+    return 1 + self.levelBonus + math.floor(distance / config.chunksPerLevel)
 end
 
 -- Swarm enemies (drones) push apart to keep their formation spacing
@@ -498,6 +527,11 @@ function World:draw(viewX0, viewY0, viewX1, viewY1)
         item:draw()
     end
 
+    -- Draw interactables (ship, people, terminals, puzzles)
+    for _, obj in ipairs(self.interactables) do
+        World.drawInteractable(obj)
+    end
+
     -- Draw enemies
     for _, enemy in ipairs(self.enemies) do
         enemy:draw()
@@ -530,6 +564,16 @@ function World:drawOverlay()
 end
 
 function World:drawChunk(chunk)
+    -- Outside a bounded area there is only open space
+    if self.bounds then
+        local size = World.chunkPixels()
+        local x0, y0 = chunk.x * size, chunk.y * size
+        if x0 >= self.bounds.x1 or y0 >= self.bounds.y1 or x0 + size <= self.bounds.x0 or y0 + size <= self.bounds.y0 then
+            love.graphics.setColor(0.03, 0.03, 0.07)
+            love.graphics.rectangle("fill", x0, y0, size, size)
+            return
+        end
+    end
     local colors = config.biomes[chunk.biome]
     local size = config.tileSize
     local originX, originY = chunk.x * World.chunkPixels(), chunk.y * World.chunkPixels()
@@ -545,6 +589,71 @@ function World:drawChunk(chunk)
                 love.graphics.circle("fill", px + size / 2, py + size / 2, size * 0.3)
             end
         end
+    end
+end
+
+-- Interactables: tables with x, y, radius, prompt, onInteract(obj) and optional
+-- kind/color/label/draw/update fields
+function World:addInteractable(obj)
+    obj.radius = obj.radius or 60
+    table.insert(self.interactables, obj)
+    return obj
+end
+
+function World:removeInteractable(obj)
+    for i, other in ipairs(self.interactables) do
+        if other == obj then
+            table.remove(self.interactables, i)
+            return true
+        end
+    end
+    return false
+end
+
+function World:findInteractable(id)
+    for _, obj in ipairs(self.interactables) do
+        if obj.id == id then return obj end
+    end
+    return nil
+end
+
+-- Closest usable interactable within its radius of a point, or nil
+function World:nearestInteractable(x, y)
+    local best, bestDist
+    for _, obj in ipairs(self.interactables) do
+        if obj.onInteract and not obj.disabled then
+            local d = math.sqrt((obj.x - x) ^ 2 + (obj.y - y) ^ 2)
+            if d <= obj.radius and (not bestDist or d < bestDist) then
+                best, bestDist = obj, d
+            end
+        end
+    end
+    return best
+end
+
+function World.drawInteractable(obj)
+    if obj.draw then
+        obj:draw()
+    elseif obj.kind == "ship" then
+        love.graphics.setColor(0.75, 0.78, 0.85)
+        love.graphics.polygon("fill", obj.x, obj.y - 34, obj.x - 24, obj.y + 26, obj.x + 24, obj.y + 26)
+        love.graphics.setColor(0.3, 0.7, 1)
+        love.graphics.circle("fill", obj.x, obj.y - 4, 7)
+        love.graphics.setColor(1, 0.6, 0.2)
+        love.graphics.rectangle("fill", obj.x - 14, obj.y + 26, 8, 6)
+        love.graphics.rectangle("fill", obj.x + 6, obj.y + 26, 8, 6)
+    elseif obj.kind == "terminal" then
+        love.graphics.setColor(0.25, 0.25, 0.3)
+        love.graphics.rectangle("fill", obj.x - 18, obj.y - 24, 36, 48)
+        love.graphics.setColor(obj.color or {0.3, 1, 0.6})
+        love.graphics.rectangle("fill", obj.x - 13, obj.y - 19, 26, 18)
+    else
+        love.graphics.setColor(obj.color or {1, 1, 1})
+        love.graphics.circle("fill", obj.x, obj.y, obj.size or 16)
+    end
+    if obj.label then
+        love.graphics.setColor(1, 1, 1, 0.9)
+        love.graphics.printf(obj.label, obj.x - 80, obj.y - 58, 160, "center")
     end
 end
 

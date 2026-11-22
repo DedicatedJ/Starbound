@@ -5,7 +5,7 @@
 -- functions or hang the game.
 local Save = {}
 
-Save.VERSION = 1
+Save.VERSION = 2   -- 2: campaign session and one world per location
 Save.FILE = "save1.lua"
 
 local MAX_INSTRUCTIONS = 1000000
