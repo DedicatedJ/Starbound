@@ -273,16 +273,7 @@ function Enemy:takeDamage(amount)
     
     if self.health <= 0 then
         self.isDead = true
-        self:dropLoot()
-    end
-end
-
-function Enemy:dropLoot()
-    for _, drop in ipairs(self.stats.drops) do
-        if math.random() < drop.chance then
-            -- TODO: Create loot item at enemy position
-            -- This will be implemented when we create the loot system
-        end
+        -- Loot is dropped by World:createLootFromEnemy when the enemy is removed
     end
 end
 

@@ -26,20 +26,8 @@ local player
 local world
 local ui
 
--- Game configuration
-local config = {
-    window = {
-        width = 1280,
-        height = 720,
-        title = "Starbound Legacy"
-    }
-}
-
--- Initialize game
+-- Initialize game (window size, title and resizing come from conf.lua)
 function love.load()
-    -- Set up window
-    love.window.setMode(config.window.width, config.window.height)
-    love.window.setTitle(config.window.title)
     
     -- Initialize game systems
     initializeGame()
@@ -48,7 +36,7 @@ end
 -- Initialize game systems
 function initializeGame()
     -- Create player at center of screen
-    player = Player.new(config.window.width / 2, config.window.height / 2)
+    player = Player.new(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
     
     -- Create world
     world = World.new()
@@ -174,8 +162,9 @@ function drawGame()
     if currentState == gameState.TUTORIAL then
         local weapon = player.weapons[player.currentWeapon]
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print("Current Weapon: " .. weapon.name, 20, config.window.height - 40, 0, 1)
-        love.graphics.print("Energy: " .. math.floor(player.energy), 20, config.window.height - 20, 0, 1)
+        local h = love.graphics.getHeight()
+        love.graphics.print("Current Weapon: " .. weapon.name, 20, h - 40, 0, 1)
+        love.graphics.print("Energy: " .. math.floor(player.energy), 20, h - 20, 0, 1)
     end
 end
 
@@ -188,8 +177,9 @@ end
 function drawMenu()
     -- Draw title screen
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Starbound Legacy", config.window.width/2 - 100, config.window.height/2 - 50, 0, 2)
-    love.graphics.print("Press SPACE to Start Tutorial", config.window.width/2 - 100, config.window.height/2 + 50, 0, 1)
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    love.graphics.print("Starbound Legacy", w / 2 - 100, h / 2 - 50, 0, 2)
+    love.graphics.print("Press SPACE to Start Tutorial", w / 2 - 100, h / 2 + 50, 0, 1)
 end
 
 -- Update paused state

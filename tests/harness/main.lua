@@ -173,7 +173,12 @@ function love.load(args)
     local ok, err = xpcall(runUnitTests, debug.traceback)
     check("unit tests ran without error", ok, err)
 
+    -- love.load must leave the window as conf.lua configured it (no setMode override)
+    local w0, h0, flags0 = love.window.getMode()
     game.load()
+    local w1, h1, flags1 = love.window.getMode()
+    check("love.load does not override the window mode", w0 == w1 and h0 == h1 and flags0.resizable == flags1.resizable,
+        ("%dx%d resizable=%s -> %dx%d resizable=%s"):format(w0, h0, tostring(flags0.resizable), w1, h1, tostring(flags1.resizable)))
     sim.phase = "scenario"
 end
 
