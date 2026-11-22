@@ -384,6 +384,22 @@ function World:checkCombat()
         end
     end
     
+    -- Projectiles can also strike interactables that react to hits (puzzle crystals)
+    for i = #player.projectiles, 1, -1 do
+        local projectile = player.projectiles[i]
+        for _, obj in ipairs(self.interactables) do
+            if obj.onHit then
+                local dx, dy = projectile.x - obj.x, projectile.y - obj.y
+                local radius = (obj.hitRadius or 20) + projectile.size
+                if dx * dx + dy * dy < radius * radius then
+                    obj:onHit(self)
+                    table.remove(player.projectiles, i)
+                    break
+                end
+            end
+        end
+    end
+
     -- Enemy attacks against the player are handled in Enemy:attackState
 end
 
@@ -633,7 +649,9 @@ end
 
 function World.drawInteractable(obj)
     if obj.draw then
+        -- Custom drawing handles its own label
         obj:draw()
+        return
     elseif obj.kind == "ship" then
         love.graphics.setColor(0.75, 0.78, 0.85)
         love.graphics.polygon("fill", obj.x, obj.y - 34, obj.x - 24, obj.y + 26, obj.x + 24, obj.y + 26)
@@ -654,6 +672,20 @@ function World.drawInteractable(obj)
     if obj.label then
         love.graphics.setColor(1, 1, 1, 0.9)
         love.graphics.printf(obj.label, obj.x - 80, obj.y - 58, 160, "center")
+    end
+end
+
+-- Extra per-world state for save files (currently the vault)
+function World:saveState()
+    if self.vault then
+        return {vault = self.vault:saveState()}
+    end
+    return nil
+end
+
+function World:loadState(state)
+    if state and state.vault and self.vault then
+        self.vault:loadState(state.vault)
     end
 end
 

@@ -11,6 +11,7 @@ local Session = require("src.game.session")
 local StarMap = require("src.ui.starmap")
 local Shop = require("src.ui.shop")
 local Upgrades = require("src.game.upgrades")
+local Vault = require("src.world.vault")
 
 -- Game states
 local gameState = {
@@ -96,6 +97,22 @@ function createWorld(id, tutorial)
         onInteract = function() openStarMap() end
     })
 
+    -- Fragment planets: a vault a few chunks from the landing site, in a seeded direction
+    if loc.fragment then
+        local rng = love.math.newRandomGenerator(session:locationSeed(id) + 17)
+        local angle = rng:random() * math.pi * 2
+        local distance = World.chunkPixels() * 4
+        Vault.new(newWorld, {
+            x = lx + math.cos(angle) * distance,
+            y = ly + math.sin(angle) * distance,
+            puzzle = loc.puzzle,
+            seed = session:locationSeed(id) + 99,
+            enemyType = loc.biomes[1] == "jungle" and "ALIEN_WILDLIFE" or "SPACE_PIRATE",
+            notify = function(text) notify(text) end,
+            onCollect = function() collectFragment(id) end
+        })
+    end
+
     -- Drift Station: the upgrade terminal
     if loc.kind == "station" then
         newWorld:addInteractable({
@@ -132,6 +149,49 @@ function enterLocation(id, options)
 
     ui.world = world
     camera.x, camera.y = player.x, player.y
+end
+
+-- Short message at the top of the screen
+function notify(text, seconds)
+    if ui then ui:notify(text, seconds) end
+end
+
+-- Taking a star map fragment from a vault: progress plus a material reward
+function collectFragment(locationId)
+    session.fragments[locationId] = true
+    local reward = {"salvage", "salvage", "salvage", "alien_essence", "alien_essence"}
+    for _, itemType in ipairs(reward) do
+        if not player:addItem(itemType) then
+            -- Inventory full: leave it on the ground
+            local Loot = require("src.entities.loot")
+            table.insert(world.loot, Loot.new(player.x, player.y, itemType))
+        end
+    end
+    notify(("Star map fragment recovered (%d of 3). The vault also held salvage and alien essence."):format(session:fragmentCount()), 6)
+end
+
+-- Arrow toward a world position: a marker above it when on screen, otherwise at the screen edge
+local function drawMarker(wx, wy, label)
+    local sx, sy = worldToScreen(wx, wy)
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    local distance = math.floor(math.sqrt((wx - player.x) ^ 2 + (wy - player.y) ^ 2) / 32)
+    love.graphics.setColor(1, 0.9, 0.3)
+    if sx >= 0 and sx <= w and sy >= 0 and sy <= h then
+        love.graphics.polygon("fill", sx, sy - 90, sx - 8, sy - 104, sx + 8, sy - 104)
+        return
+    end
+    local cx, cy = w / 2, h / 2
+    local angle = math.atan2(sy - cy, sx - cx)
+    local margin = 40
+    local scale = math.min((w / 2 - margin) / math.max(1e-6, math.abs(math.cos(angle))),
+        (h / 2 - margin) / math.max(1e-6, math.abs(math.sin(angle))))
+    local ex, ey = cx + math.cos(angle) * scale, cy + math.sin(angle) * scale
+    love.graphics.push()
+    love.graphics.translate(ex, ey)
+    love.graphics.rotate(angle)
+    love.graphics.polygon("fill", 14, 0, -8, -9, -8, 9)
+    love.graphics.pop()
+    love.graphics.printf(("%s %dm"):format(label, distance), ex - 60, ey + 14, 120, "center")
 end
 
 function openShop()
@@ -528,6 +588,11 @@ function drawGame()
 
     -- Screen-space world overlays (tutorial text)
     world:drawOverlay()
+
+    -- Point the way to an unopened vault
+    if world.vault and not world.vault.collected and not world:tutorialActive() then
+        drawMarker(world.vault.x, world.vault.y, "Vault")
+    end
 
     -- Draw UI
     ui:draw()

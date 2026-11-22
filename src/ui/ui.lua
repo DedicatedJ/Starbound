@@ -22,6 +22,8 @@ function UI.new(player, world)
     self.world = world
     self.session = nil   -- campaign session (location, fuel), set by the game
     self.prompt = nil    -- interaction prompt such as "[E] Open star map"
+    self.notice = nil    -- short message shown at the top of the screen
+    self.noticeTimer = 0
     
     -- UI state
     self.showInventory = false
@@ -53,7 +55,19 @@ function UI:removeElement(element)
     end
 end
 
+-- Show a short message at the top of the screen
+function UI:notify(text, seconds)
+    self.notice = text
+    self.noticeTimer = seconds or 5
+end
+
 function UI:update(dt)
+    if self.noticeTimer > 0 then
+        self.noticeTimer = self.noticeTimer - dt
+        if self.noticeTimer <= 0 then
+            self.notice = nil
+        end
+    end
     if self.menuMessageTimer > 0 then
         self.menuMessageTimer = self.menuMessageTimer - dt
         if self.menuMessageTimer <= 0 then
@@ -125,6 +139,15 @@ function UI:drawHUD()
         love.graphics.printf(loc.name, screenW - 260, config.padding, 250, "right")
         love.graphics.printf(("Fuel %d/%d   Fragments %d/3"):format(self.session.fuel, self.session:maxFuel(), self.session:fragmentCount()),
             screenW - 260, config.padding + 18, 250, "right")
+    end
+
+    -- Notification, top center
+    if self.notice then
+        local screenW = love.graphics.getWidth()
+        love.graphics.setColor(0, 0, 0, 0.65)
+        love.graphics.rectangle("fill", screenW / 2 - 300, 60, 600, 46)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.printf(self.notice, screenW / 2 - 290, 66, 580, "center")
     end
 
     -- Interaction prompt, bottom center
@@ -253,8 +276,18 @@ function UI:drawMap()
         end
     end
 
-    -- Player marker at their exact position inside the current chunk
     local size = World.chunkPixels()
+
+    -- Vault marked on the inherited star map
+    if world.vault then
+        local vx = centerX + (world.vault.x / size - pcx) * MAP_CELL - MAP_CELL / 2
+        local vy = centerY + (world.vault.y / size - pcy) * MAP_CELL - MAP_CELL / 2
+        love.graphics.setColor(world.vault.collected and {0.5, 0.5, 0.5} or {1, 0.9, 0.3})
+        love.graphics.polygon("fill", vx, vy - 7, vx + 7, vy, vx, vy + 7, vx - 7, vy)
+        love.graphics.print(world.vault.collected and "Vault (empty)" or "Vault", vx + 10, vy - 7)
+    end
+
+    -- Player marker at their exact position inside the current chunk
     local markerX = centerX + (player.x / size - pcx) * MAP_CELL - MAP_CELL / 2
     local markerY = centerY + (player.y / size - pcy) * MAP_CELL - MAP_CELL / 2
     love.graphics.setColor(0, 1, 0)

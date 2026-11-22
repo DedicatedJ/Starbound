@@ -40,6 +40,8 @@ local function upvalue(fn, name)
     end
 end
 
+local bit = require("bit")
+
 -- Input stubs
 local keysDown, mouseX, mouseY = {}, 0, 0
 love.keyboard.isDown = function(...)
@@ -416,6 +418,86 @@ local function runUnitTests()
     for _ = 1, 1500 do p:update(DT) end   -- 2 s delay, then 5 per second
     check("shield recharges to its own maximum", p.shield == p.maxShield, p.shield)
     check("removeItemsOfType refuses when short", p:removeItemsOfType("salvage", 99) == false)
+
+    -- Vaults
+    local Vault = require("src.world.vault")
+    local function vaultWorld(puzzle)
+        local vw = World.new({spawnEnemies = false, tutorial = false})
+        local vp = Player.new(0, 0)
+        vw:addEntity(vp)
+        local result = {collected = false, notes = {}}
+        result.vault = Vault.new(vw, {x = 0, y = 0, puzzle = puzzle, seed = 7,
+            notify = function(text) table.insert(result.notes, text) end,
+            onCollect = function() result.collected = true end})
+        return vw, vp, result
+    end
+
+    -- Sequence: watch, then wake the pylons in order
+    local vw, vp, r = vaultWorld("sequence")
+    local v = r.vault
+    v:useDoor()
+    check("reading the glyphs plays the sequence", v.flashQueue ~= nil and #r.notes == 1)
+    v:activatePylon(v.sequence[1])
+    check("pylons ignore input during playback", v.progress == 0)
+    for _ = 1, 400 do vw:update(DT) end
+    check("sequence playback finishes", v.flashQueue == nil)
+    v:activatePylon(v.sequence[1] % 4 + 1)
+    check("wrong pylon resets and summons guardians", v.progress == 0 and #vw.enemies == 2, #vw.enemies)
+    for _, index in ipairs(v.sequence) do
+        local part = vw:findInteractable("pylon_" .. index)
+        part.onInteract(part)
+    end
+    check("correct order opens the vault", v.solved)
+    v:useDoor()
+    check("taking the fragment from the open vault", v.collected and r.collected and vw:nearestInteractable(0, 0) == nil)
+
+    -- Resonance: find a solution, then apply it by shooting the crystals
+    vw, vp, r = vaultWorld("resonance")
+    v = r.vault
+    check("crystals start scrambled", not v:allCrystalsLit())
+    local solution
+    for mask = 1, 31 do
+        for i = 1, 5 do if bit.band(mask, bit.lshift(1, i - 1)) ~= 0 then v:toggleCrystals(i) end end
+        local lit = v:allCrystalsLit()
+        for i = 1, 5 do if bit.band(mask, bit.lshift(1, i - 1)) ~= 0 then v:toggleCrystals(i) end end
+        if lit then solution = mask; break end
+    end
+    check("the crystal puzzle is solvable", solution ~= nil)
+    for i = 1, 5 do
+        if solution and bit.band(solution, bit.lshift(1, i - 1)) ~= 0 then
+            local crystal = v.crystals[i]
+            vp.fireTimer = 0
+            vp:fire(crystal.x, crystal.y)
+            for _ = 1, 40 do vw:update(DT) end
+        end
+    end
+    check("shooting the right crystals opens the vault", v.solved)
+
+    -- Plates: walk onto plates whose numbers add up to the target
+    vw, vp, r = vaultWorld("plates")
+    v = r.vault
+    local pick
+    for mask = 1, 31 do
+        local sum = 0
+        for i = 1, 5 do if bit.band(mask, bit.lshift(1, i - 1)) ~= 0 then sum = sum + v.plates[i].value end end
+        if sum == v.target then pick = mask; break end
+    end
+    for i = 1, 5 do
+        if pick and bit.band(pick, bit.lshift(1, i - 1)) ~= 0 then
+            vp.x, vp.y = v.plates[i].x, v.plates[i].y
+            vw:update(DT)
+            vp.x, vp.y = 0, -300
+            vw:update(DT)
+        end
+    end
+    check("standing on plates that match the target opens the vault", v.solved, ("target %d sum %d"):format(v.target, v:plateSum()))
+
+    -- Vault state survives save and load
+    local saved = vw:saveState()
+    local vw2 = World.new({spawnEnemies = false, tutorial = false})
+    local v2 = Vault.new(vw2, {x = 0, y = 0, puzzle = "plates", seed = 7})
+    vw2:loadState(saved)
+    check("vault state survives save and load", v2.solved and not v2.collected)
 end
 
 function love.load(args)
@@ -613,6 +695,25 @@ local function step()
         for _ in pairs(getWorld().explored) do exploredBack = exploredBack + 1 end
         check("returning keeps the planet as it was", getWorld() == homeWorld and exploredBack >= exploredHome and sess.fuel == sess:maxFuel() - 1,
             ("explored %d/%d fuel %d"):format(exploredBack, exploredHome, sess.fuel))
+        
+        -- Fly to Cinder by way of Drift Station and take its fragment
+        local function boardAndJump(id)
+            local shipHere = getWorld():findInteractable("ship")
+            player = getPlayer()
+            player.x, player.y = shipHere.x, shipHere.y
+            game.keypressed("e")
+            selectLocation(id)
+            game.keypressed("return")
+        end
+        boardAndJump("drift_station")
+        boardAndJump("cinder")
+        local cinder = getWorld()
+        check("Cinder has a sequence vault", sess.location == "cinder" and cinder.vault ~= nil and cinder.vault.puzzle == "sequence")
+        local salvageBefore = getPlayer():countItem("salvage")
+        cinder.vault:setSolved()
+        cinder.vault:useDoor()
+        check("taking a fragment updates the campaign", sess.fragments.cinder == true and sess:fragmentCount() == 1
+            and getPlayer():countItem("salvage") == salvageBefore + 3, sess:fragmentCount())
         sim.phase = "death"
     elseif sim.phase == "death" then
         player = getPlayer()
