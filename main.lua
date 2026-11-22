@@ -56,7 +56,7 @@ function initializeGame()
     world:addEntity(player)
     
     -- Create UI
-    ui = UI.new(player)
+    ui = UI.new(player, world)
 
     -- Start the camera on the player
     camera.x, camera.y = player.x, player.y

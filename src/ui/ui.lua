@@ -1,4 +1,5 @@
 local Loot = require("src.entities.loot")
+local World = require("src.world.world")
 
 local UI = {}
 UI.__index = UI
@@ -12,11 +13,12 @@ local config = {
     healthBarHeight = 20
 }
 
-function UI.new(player)
+function UI.new(player, world)
     local self = setmetatable({}, UI)
-    
-    -- Player whose stats the HUD shows
+
+    -- Player whose stats the HUD shows, and the world the map shows
     self.player = player
+    self.world = world
     
     -- UI state
     self.showInventory = false
@@ -179,9 +181,62 @@ function UI:drawInventory()
     love.graphics.setColor(r, g, b, a)
 end
 
+local MAP_CELL = 18   -- pixels per chunk on the map
+
 function UI:drawMap()
-    -- TODO: Implement map drawing
-    love.graphics.print("Map View", love.graphics.getWidth() / 2 - 50, love.graphics.getHeight() / 2)
+    local r, g, b, a = love.graphics.getColor()
+    local screenW, screenH = love.graphics.getWidth(), love.graphics.getHeight()
+
+    love.graphics.setColor(0, 0, 0, 0.85)
+    love.graphics.rectangle("fill", 0, 0, screenW, screenH)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("MAP", 0, 20, screenW / 2, "center", 0, 2)
+    love.graphics.printf("M to close", 0, screenH - 25, screenW, "center")
+
+    local world, player = self.world, self.player
+    if not (world and player) then
+        love.graphics.setColor(r, g, b, a)
+        return
+    end
+
+    -- Explored chunks, centered on the chunk the player is in
+    local pcx, pcy = world.currentChunk.x, world.currentChunk.y
+    local centerX, centerY = screenW / 2, screenH / 2
+    for key in pairs(world.explored) do
+        local chunk = world.chunks[key]
+        if chunk then
+            local x = centerX + (chunk.x - pcx) * MAP_CELL - MAP_CELL / 2
+            local y = centerY + (chunk.y - pcy) * MAP_CELL - MAP_CELL / 2
+            if x > -MAP_CELL and x < screenW and y > 60 and y < screenH - 60 then
+                love.graphics.setColor(World.biomeColor(chunk.biome))
+                love.graphics.rectangle("fill", x, y, MAP_CELL - 2, MAP_CELL - 2)
+                if chunk.key == world.startChunkKey then
+                    love.graphics.setColor(1, 1, 1)
+                    love.graphics.rectangle("line", x, y, MAP_CELL - 2, MAP_CELL - 2)
+                end
+            end
+        end
+    end
+
+    -- Player marker at their exact position inside the current chunk
+    local size = World.chunkPixels()
+    local markerX = centerX + (player.x / size - pcx) * MAP_CELL - MAP_CELL / 2
+    local markerY = centerY + (player.y / size - pcy) * MAP_CELL - MAP_CELL / 2
+    love.graphics.setColor(0, 1, 0)
+    love.graphics.circle("fill", markerX, markerY, 4)
+
+    -- Legend
+    local legendY = 70
+    for _, biome in ipairs(world.biomeList) do
+        love.graphics.setColor(World.biomeColor(biome))
+        love.graphics.rectangle("fill", 20, legendY, 14, 14)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.print(biome:gsub("_", " "), 40, legendY)
+        legendY = legendY + 20
+    end
+    love.graphics.print("White outline: landing site", 20, legendY + 6)
+
+    love.graphics.setColor(r, g, b, a)
 end
 
 function UI:drawMenu()

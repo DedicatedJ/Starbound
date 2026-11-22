@@ -304,6 +304,19 @@ local function runUnitTests()
     ui.showInventory = true
     local sx, sy, sw, sh = ui:inventorySlotRect(3)
     check("inventory slot hit test", ui:inventorySlotAt(sx + sw / 2, sy + sh / 2) == 3 and ui:inventorySlotAt(-5, -5) == nil)
+
+    -- Map: the 3x3 block around the player counts as explored, and the map draws
+    w = World.new({spawnEnemies = false, tutorial = false})
+    p = Player.new(0, 0)
+    w:addEntity(p)
+    w:update(DT)
+    local seen = 0
+    for _ in pairs(w.explored) do seen = seen + 1 end
+    check("chunks around the player are explored", seen == 9, seen)
+    ui = UI.new(p, w)
+    ui.showMap = true
+    local okMap, errMap = pcall(function() ui:draw() end)
+    check("map draws without error", okMap, errMap)
 end
 
 function love.load(args)
@@ -360,6 +373,12 @@ local function step()
         if math.abs(t - 1.0) < DT / 2 then
             local sp = math.sqrt(player.velocity.x ^ 2 + player.velocity.y ^ 2)
             check("WASD diagonal moves at normal speed in game", math.abs(sp - 200) < 0.01, sp)
+        end
+        -- Open and close the map and inventory so they get drawn during the run
+        if math.abs(t - 2.0) < DT / 2 or math.abs(t - 2.2) < DT / 2 then game.keypressed("m") end
+        if math.abs(t - 2.3) < DT / 2 or math.abs(t - 2.4) < DT / 2 then game.keypressed("i") end
+        if math.abs(t - 2.1) < DT / 2 then
+            check("map opens with M", upvalue(updateGame, "ui").showMap == true)
         end
         if math.abs(t - 1.7) < DT / 2 then
             check("player stops after keys released", player.velocity.x == 0 and player.velocity.y == 0)

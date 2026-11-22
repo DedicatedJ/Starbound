@@ -121,6 +121,11 @@ function World.new(options)
     return self
 end
 
+-- Main color of a biome, used by the map
+function World.biomeColor(biome)
+    return config.biomes[biome] and config.biomes[biome].floor or {0.5, 0.5, 0.5}
+end
+
 -- Size of one chunk in world pixels
 function World.chunkPixels()
     return config.tileSize * config.chunkSize
@@ -390,6 +395,7 @@ function World:updateChunks()
         for cx = pcx - config.activeRadius, pcx + config.activeRadius do
             local chunk = self:getChunk(cx, cy)
             chunk.active = true
+            self.explored[chunk.key] = true   -- seen chunks appear on the map
             if not chunk.spawned and not chunk.cleared then
                 self:spawnChunkEnemies(chunk)
             end
