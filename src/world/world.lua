@@ -3,6 +3,7 @@ World.__index = World
 
 -- World configuration
 local bit = require("bit")
+local Enemy = require("src.entities.enemy")
 
 local config = {
     tileSize = 32,
@@ -10,7 +11,9 @@ local config = {
     maxChunks = 3,
     enemySpawnChance = 0.3,
     maxEnemiesPerChunk = 5,
-    -- Biome look and inhabitants; a world picks a subset of these
+    activeRadius = 1,   -- chunks within this distance of the player have live enemies
+    unloadRadius = 2,   -- enemies in chunks farther than this are despawned
+-- Biome look and inhabitants; a world picks a subset of these
     biomes = {
         jungle = {
             floor = {0.13, 0.42, 0.18}, alt = {0.11, 0.36, 0.15}, decor = {0.22, 0.58, 0.26},
@@ -91,6 +94,9 @@ function World.new(options)
     self.entities = {}
     self.enemies = {}
     self.loot = {}
+    self.explored = {}          -- chunk keys the player has visited (for the map)
+    self.startChunkKey = nil    -- the chunk the player starts in has no enemies
+    self.spawnEnemies = options.spawnEnemies ~= false
 
     -- The seed drives all procedural generation, so a world can be rebuilt exactly from it
     self.seed = options.seed or love.math.random(1, 2147483646)
@@ -194,6 +200,7 @@ function World:update(dt)
             -- Create loot from enemy drops
             self:createLootFromEnemy(enemy)
             table.remove(self.enemies, i)
+            self:onEnemyRemoved(enemy)
         else
             -- Set player as target for enemies
             local player = self:findPlayer()
@@ -226,8 +233,8 @@ function World:update(dt)
         end
     end
     
-    -- Update current chunk if needed
-    self:updateCurrentChunk()
+    -- Stream chunks around the player
+    self:updateChunks()
     
     -- Check for combat interactions
     self:checkCombat()
@@ -330,41 +337,118 @@ function World:checkCombat()
     -- Enemy attacks against the player are handled in Enemy:attackState
 end
 
-function World:updateCurrentChunk()
-    -- TODO: Implement chunk loading/unloading based on player position
+function World.worldToChunk(x, y)
+    local size = World.chunkPixels()
+    return math.floor(x / size), math.floor(y / size)
 end
 
-function World:draw()
-    -- Draw current chunk
-    if self.chunks[self.currentChunk.x] and self.chunks[self.currentChunk.x][self.currentChunk.y] then
-        local chunk = self.chunks[self.currentChunk.x][self.currentChunk.y]
-        
-        -- Draw tiles
-        for y = 1, config.chunkSize do
-            for x = 1, config.chunkSize do
-                local tile = chunk.tiles[y][x]
-                self:drawTile(x, y, tile)
+-- Return a chunk, generating and caching it on first use
+function World:getChunk(chunkX, chunkY)
+    local key = World.chunkKey(chunkX, chunkY)
+    local chunk = self.chunks[key]
+    if not chunk then
+        chunk = self:generateChunk(chunkX, chunkY)
+        self.chunks[key] = chunk
+    end
+    return chunk
+end
+
+function World:tutorialActive()
+    return self.tutorial.enabled and not self.tutorial.completed
+end
+
+-- Activate chunks near the player and despawn enemies in chunks far away
+function World:updateChunks()
+    local player = self:findPlayer()
+    if not player then return end
+
+    local pcx, pcy = World.worldToChunk(player.x, player.y)
+    self.currentChunk.x, self.currentChunk.y = pcx, pcy
+    local here = World.chunkKey(pcx, pcy)
+    self.startChunkKey = self.startChunkKey or here
+    self.explored[here] = true
+
+    for cy = pcy - config.activeRadius, pcy + config.activeRadius do
+        for cx = pcx - config.activeRadius, pcx + config.activeRadius do
+            local chunk = self:getChunk(cx, cy)
+            chunk.active = true
+            if not chunk.spawned and not chunk.cleared then
+                self:spawnChunkEnemies(chunk)
             end
         end
     end
-    
+
+    for key, chunk in pairs(self.chunks) do
+        if chunk.active and (math.abs(chunk.x - pcx) > config.unloadRadius or math.abs(chunk.y - pcy) > config.unloadRadius) then
+            chunk.active = false
+            chunk.spawned = false
+            chunk.enemiesAlive = 0
+            for i = #self.enemies, 1, -1 do
+                if self.enemies[i].chunkKey == key then
+                    table.remove(self.enemies, i)
+                end
+            end
+        end
+    end
+end
+
+function World:spawnChunkEnemies(chunk)
+    -- No spawns while the tutorial runs, in the safe start chunk, or when disabled
+    if not self.spawnEnemies or self:tutorialActive() or chunk.key == self.startChunkKey then
+        return
+    end
+    chunk.spawned = true
+    chunk.enemiesAlive = 0
+    for _, spawn in ipairs(chunk.enemySpawns) do
+        local enemy = Enemy.new(spawn.x, spawn.y, spawn.enemyType)
+        enemy.chunkKey = chunk.key
+        table.insert(self.enemies, enemy)
+        chunk.enemiesAlive = chunk.enemiesAlive + 1
+    end
+    if chunk.enemiesAlive == 0 then
+        chunk.cleared = true
+    end
+end
+
+-- A chunk whose enemies are all defeated stays cleared and never respawns
+function World:onEnemyRemoved(enemy)
+    local chunk = enemy.chunkKey and self.chunks[enemy.chunkKey]
+    if chunk then
+        chunk.enemiesAlive = (chunk.enemiesAlive or 1) - 1
+        if chunk.enemiesAlive <= 0 then
+            chunk.cleared = true
+        end
+    end
+end
+
+-- Draw the world; the view rectangle (world coordinates) selects which chunks' tiles to draw
+function World:draw(viewX0, viewY0, viewX1, viewY1)
+    if viewX0 then
+        local cx0, cy0 = World.worldToChunk(viewX0, viewY0)
+        local cx1, cy1 = World.worldToChunk(viewX1, viewY1)
+        for cy = cy0, cy1 do
+            for cx = cx0, cx1 do
+                self:drawChunk(self:getChunk(cx, cy))
+            end
+        end
+    end
+
     -- Draw loot
     for _, item in ipairs(self.loot) do
         item:draw()
     end
-    
-    -- Draw enemies (chunk enemies are also tracked in self.enemies)
+
+    -- Draw enemies
     for _, enemy in ipairs(self.enemies) do
         enemy:draw()
     end
-    
+
     -- Draw world entities (player and its projectiles)
     for _, entity in ipairs(self.entities) do
         if entity.draw then
             entity:draw()
         end
     end
-    
 end
 
 -- Screen-space overlays drawn after the camera transform is removed
@@ -385,22 +469,23 @@ function World:drawOverlay()
     end
 end
 
-function World:drawTile(x, y, tile)
-    -- TODO: Implement proper tile drawing
-    local color = {
-        [self.biomeTypes.JUNGLE] = {0, 1, 0},
-        [self.biomeTypes.DESERT] = {1, 0.8, 0},
-        [self.biomeTypes.ICE] = {0.8, 0.8, 1},
-        [self.biomeTypes.SPACE_STATION] = {0.5, 0.5, 0.5}
-    }
-    
-    love.graphics.setColor(unpack(color[tile.biome]))
-    love.graphics.rectangle("fill", 
-        (x - 1) * config.tileSize, 
-        (y - 1) * config.tileSize, 
-        config.tileSize, 
-        config.tileSize
-    )
+function World:drawChunk(chunk)
+    local colors = config.biomes[chunk.biome]
+    local size = config.tileSize
+    local originX, originY = chunk.x * World.chunkPixels(), chunk.y * World.chunkPixels()
+    for y = 1, config.chunkSize do
+        local row = chunk.tiles[y]
+        for x = 1, config.chunkSize do
+            local tile = row[x]
+            local px, py = originX + (x - 1) * size, originY + (y - 1) * size
+            love.graphics.setColor(tile.type == "alt" and colors.alt or colors.floor)
+            love.graphics.rectangle("fill", px, py, size, size)
+            if tile.type == "decor" then
+                love.graphics.setColor(colors.decor)
+                love.graphics.circle("fill", px + size / 2, py + size / 2, size * 0.3)
+            end
+        end
+    end
 end
 
 function World:addEntity(entity)

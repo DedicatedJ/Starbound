@@ -104,8 +104,7 @@ local function runUnitTests()
     check("in-flight projectile keeps its own range", #p.projectiles == 1, #p.projectiles)
 
     -- Void Beam pierces and hits several enemies
-    local w = World.new()
-    w.tutorial.enabled = false
+    local w = World.new({spawnEnemies = false, tutorial = false})
     p = Player.new(100, 300)
     w:addEntity(p)
     local line = {}
@@ -123,8 +122,7 @@ local function runUnitTests()
     check("void beam pierces through 3 enemies", hits == 3, hits)
 
     -- Scatter shot: all 5 pellets overlapping an enemy hit in a single combat check
-    w = World.new()
-    w.tutorial.enabled = false
+    w = World.new({spawnEnemies = false, tutorial = false})
     p = Player.new(100, 300)
     w:addEntity(p)
     local target = Enemy.new(100, 300, "SPACE_PIRATE") -- on top of the muzzle
@@ -136,8 +134,7 @@ local function runUnitTests()
     check("all scatter pellets hit in one frame", 1000 - target.health == 5 * 8, 1000 - target.health)
 
     -- Enemy attacks damage the player
-    w = World.new()
-    w.tutorial.enabled = false
+    w = World.new({spawnEnemies = false, tutorial = false})
     p = Player.new(400, 300)
     w:addEntity(p)
     table.insert(w.enemies, Enemy.new(450, 300, "ALIEN_WILDLIFE"))
@@ -177,6 +174,57 @@ local function runUnitTests()
         if sp.x < 3 * px or sp.x >= 4 * px or sp.y < -2 * px or sp.y >= -1 * px then inside = false end
     end
     check("enemy spawns lie inside their chunk", inside)
+
+    -- Chunk streaming. Pick the first seed whose 3x3 block around chunk (10,10) has spawns.
+    local function expectedSpawns(seed, ccx, ccy, exceptKey)
+        local probe, total = World.new({seed = seed, tutorial = false}), 0
+        for cy = ccy - 1, ccy + 1 do
+            for cx = ccx - 1, ccx + 1 do
+                if World.chunkKey(cx, cy) ~= exceptKey then
+                    total = total + #probe:generateChunk(cx, cy).enemySpawns
+                end
+            end
+        end
+        return total
+    end
+    local seed = 1
+    while expectedSpawns(seed, 10, 10, nil) == 0 do seed = seed + 1 end
+
+    w = World.new({seed = seed, tutorial = false})
+    p = Player.new(0, 0)                         -- start chunk (0,0) is the safe chunk
+    w:addEntity(p)
+    w:update(DT)
+    check("start chunk and its neighbours follow spawn data", #w.enemies == expectedSpawns(seed, 0, 0, "0,0"),
+        ("%d vs %d"):format(#w.enemies, expectedSpawns(seed, 0, 0, "0,0")))
+    for _, e in ipairs(w.enemies) do check("no enemy spawns in the start chunk", e.chunkKey ~= "0,0"); break end
+
+    local px2 = World.chunkPixels()
+    p.x, p.y = 10.5 * px2, 10.5 * px2           -- jump far away
+    w:update(DT)
+    local near, farLeft = 0, 0
+    for _, e in ipairs(w.enemies) do
+        local ecx, ecy = World.worldToChunk(e.spawnX, e.spawnY)
+        if math.abs(ecx - 10) <= 1 and math.abs(ecy - 10) <= 1 then near = near + 1 else farLeft = farLeft + 1 end
+    end
+    check("far chunks despawn their enemies", farLeft == 0, farLeft)
+    check("chunks around the player spawn their enemies", near == expectedSpawns(seed, 10, 10, nil) and near > 0, near)
+
+    -- Defeat everything nearby, leave, come back: cleared chunks stay empty
+    for _, e in ipairs(w.enemies) do e.isDead = true end
+    w:update(DT)
+    p.x, p.y = 0, 0
+    w:update(DT)
+    p.x, p.y = 10.5 * px2, 10.5 * px2
+    w:update(DT)
+    check("cleared chunks do not respawn", #w.enemies == 0, #w.enemies)
+    check("visited chunks are marked explored", w.explored["10,10"] == true and w.explored["0,0"] == true)
+
+    -- No chunk spawns while the tutorial is running
+    w = World.new({seed = seed})
+    p = Player.new(10.5 * px2, 10.5 * px2)
+    w:addEntity(p)
+    w:update(DT)
+    check("no chunk enemies during the tutorial", #w.enemies == 0, #w.enemies)
 end
 
 function love.load(args)
