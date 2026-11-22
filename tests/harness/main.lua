@@ -9,9 +9,10 @@
 --   Linux:    love tests/harness
 --   macOS:    /Applications/love.app/Contents/MacOS/love tests/harness
 --
--- Optional arguments: <repo dir> <results file>
+-- Optional arguments: <repo dir> <results file> <seed>
 --   <repo dir>      game to test (default: two levels above this folder)
---   <results file>  also write the results to this file
+--   <results file>  also write the results to this file ("-" for none)
+--   <seed>          random seed (default 12345, so runs are reproducible)
 local REPO, OUT
 local results, failures = {}, 0
 
@@ -537,7 +538,11 @@ end
 
 function love.load(args)
     REPO = args[1] or (love.filesystem.getSource() .. "/../..")
-    OUT = args[2]
+    OUT = args[2] ~= "-" and args[2] or nil
+    local seed = tonumber(args[3]) or 12345
+    love.math.setRandomSeed(seed)
+    math.randomseed(seed)
+    log("seed " .. seed)
     package.path = REPO .. "/?.lua;" .. package.path
 
     local chunk = assert(loadfile(REPO .. "/main.lua"))
@@ -628,6 +633,12 @@ local function step()
         local e = nearestEnemy(world, player)
         if e then
             spawnSeen = true
+            -- Chase enemies that are out of comfortable weapon range (retreating ones especially)
+            local ex, ey = e.x - player.x, e.y - player.y
+            if ex * ex + ey * ey > 220 * 220 then
+                if ex > 20 then keysDown.d = true elseif ex < -20 then keysDown.a = true end
+                if ey > 20 then keysDown.s = true elseif ey < -20 then keysDown.w = true end
+            end
             local weapons = {"1", "2", "3", "4", "5"}
             game.keypressed(weapons[math.floor(t / 2) % 5 + 1])
             -- Click where the enemy appears on screen (the game converts back to world coordinates)

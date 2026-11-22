@@ -78,7 +78,7 @@ Each jump uses 1 fuel. Docking at Drift Station refuels the ship, and if you run
 
 ## Running the Tests
 
-The harness in `tests/harness` loads the game, simulates keyboard and mouse input, runs unit checks on every module, and plays through the campaign: tutorial, travel, a purchase, a vault fragment, save and load, death, and an ending. It prints a PASS or FAIL line per check and exits with code 0 when everything passes. Run it from the repository root.
+The harness in `tests/harness` loads the game, simulates keyboard and mouse input, runs unit checks on every module, and plays through the campaign: tutorial, travel, a purchase, a vault fragment, save and load, death, and an ending. It prints a PASS or FAIL line per check and exits with code 0 when everything passes. Runs use a fixed random seed so they are reproducible; to try another, pass it as the third argument, for example `love tests/harness . - 7`. Run it from the repository root. GitHub Actions runs the harness on every push and pull request.
 
 ### On Windows (PowerShell)
 ```powershell
