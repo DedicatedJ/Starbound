@@ -132,6 +132,11 @@ function Player.new(x, y)
     self.chargeTimer = 0
     self.chargeReady = false
     self.lastFired = 0
+
+    -- Aim point in world coordinates, set by the game each frame
+    self.aimX = self.x
+    self.aimY = self.y
+
     
     -- Movement
     self.velocity = {x = 0, y = 0}
@@ -145,11 +150,7 @@ function Player:update(dt)
     self.x = self.x + self.velocity.x * dt
     self.y = self.y + self.velocity.y * dt
 
-    -- Keep the player on screen
-    self.x = math.max(20, math.min(love.graphics.getWidth() - 20, self.x))
-    self.y = math.max(20, math.min(love.graphics.getHeight() - 20, self.y))
-
-    -- Update shield recharge
+-- Update shield recharge
     if self.shield < config.maxHealth then
         self.shieldRechargeTimer = self.shieldRechargeTimer + dt
         if self.shieldRechargeTimer >= config.shieldRechargeDelay then
@@ -174,8 +175,7 @@ function Player:update(dt)
             self.isCharging = false
             self.chargeTimer = 0
             self.chargeReady = true
-            local mx, my = love.mouse.getPosition()
-            self:fire(mx, my)
+            self:fire(self.aimX, self.aimY)
             self.chargeReady = false
         end
     end

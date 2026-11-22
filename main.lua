@@ -26,6 +26,18 @@ local player
 local world
 local ui
 
+-- Camera center in world coordinates; it follows the player
+local camera = {x = 0, y = 0}
+
+-- Convert between screen pixels and world coordinates
+function screenToWorld(sx, sy)
+    return sx + camera.x - love.graphics.getWidth() / 2, sy + camera.y - love.graphics.getHeight() / 2
+end
+
+function worldToScreen(wx, wy)
+    return wx - camera.x + love.graphics.getWidth() / 2, wy - camera.y + love.graphics.getHeight() / 2
+end
+
 -- Initialize game (window size, title and resizing come from conf.lua)
 function love.load()
     
@@ -44,6 +56,9 @@ function initializeGame()
     
     -- Create UI
     ui = UI.new(player)
+
+    -- Start the camera on the player
+    camera.x, camera.y = player.x, player.y
 end
 
 -- Update game state
@@ -106,8 +121,8 @@ end
 -- Handle mouse input
 function love.mousepressed(x, y, button)
     if (currentState == gameState.PLAYING or currentState == gameState.TUTORIAL) and button == 1 then
-        -- Left click to fire
-        player:fire(x, y)
+        -- Left click to fire at the world position under the cursor
+        player:fire(screenToWorld(x, y))
     end
     
     if ui then
@@ -132,10 +147,18 @@ function updateGame(dt)
 
     -- Always set velocity so the player stops when no key is held
     player:move(dx, dy)
-    
+
+    -- Aim follows the cursor in world coordinates (charge weapons fire here)
+    player.aimX, player.aimY = screenToWorld(love.mouse.getPosition())
+
     -- Update world
     world:update(dt)
-    
+
+    -- Camera eases toward the player
+    local follow = math.min(1, dt * 8)
+    camera.x = camera.x + (player.x - camera.x) * follow
+    camera.y = camera.y + (player.y - camera.y) * follow
+
     -- Update UI
     ui:update(dt)
     
@@ -152,9 +175,16 @@ end
 
 -- Draw game world
 function drawGame()
-    -- Draw world
+    -- Draw world through the camera
+    love.graphics.push()
+    local ox, oy = worldToScreen(0, 0)
+    love.graphics.translate(math.floor(ox + 0.5), math.floor(oy + 0.5))
     world:draw()
-    
+    love.graphics.pop()
+
+    -- Screen-space world overlays (tutorial text)
+    world:drawOverlay()
+
     -- Draw UI
     ui:draw()
     

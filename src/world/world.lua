@@ -365,6 +365,10 @@ function World:draw()
         end
     end
     
+end
+
+-- Screen-space overlays drawn after the camera transform is removed
+function World:drawOverlay()
     -- Draw tutorial message
     if self.tutorial.enabled and not self.tutorial.completed then
         local currentStep = self.tutorial.steps[self.tutorial.currentStep]

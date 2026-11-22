@@ -143,9 +143,14 @@ function Enemy:update(dt)
     self.x = self.x + self.velocity.x * dt
     self.y = self.y + self.velocity.y * dt
 
-    -- Keep enemies on screen so retreating ones can still be finished off
-    self.x = math.max(15, math.min(love.graphics.getWidth() - 15, self.x))
-    self.y = math.max(15, math.min(love.graphics.getHeight() - 15, self.y))
+    -- Stay within a leash of the spawn point so retreating enemies can still be finished off
+    local leash = self.stats.behavior.patrolRadius + self.stats.behavior.chaseRange
+    local lx, ly = self.x - self.spawnX, self.y - self.spawnY
+    local dist = math.sqrt(lx * lx + ly * ly)
+    if dist > leash then
+        self.x = self.spawnX + lx / dist * leash
+        self.y = self.spawnY + ly / dist * leash
+    end
 end
 
 function Enemy:setTarget(target)

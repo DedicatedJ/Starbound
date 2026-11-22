@@ -80,7 +80,7 @@ local function runUnitTests()
     -- Ion cannon charge fires automatically
     p = Player.new(400, 300)
     p:switchWeapon("ion_cannon")
-    mouseX, mouseY = 600, 300
+    p.aimX, p.aimY = 600, 300
     local fired = p:fire(600, 300)
     check("ion cannon click starts charge, no shot yet", fired == false and p.isCharging and #p.projectiles == 0)
     for _ = 1, 40 do p:update(DT) end
@@ -237,6 +237,14 @@ local function step()
         if math.abs(t - 1.7) < DT / 2 then
             check("player stops after keys released", player.velocity.x == 0 and player.velocity.y == 0)
         end
+        if math.abs(t - 2.5) < DT / 2 then
+            -- After moving, the camera has caught up and the player is near screen center
+            local sx, sy = worldToScreen(player.x, player.y)
+            local cx, cy = love.graphics.getWidth() / 2, love.graphics.getHeight() / 2
+            check("camera follows the player", math.abs(sx - cx) < 5 and math.abs(sy - cy) < 5, ("%.1f,%.1f vs %.1f,%.1f"):format(sx, sy, cx, cy))
+            local wx, wy = screenToWorld(worldToScreen(123.5, -456.25))
+            check("screen/world conversion round-trips", math.abs(wx - 123.5) < 1e-6 and math.abs(wy + 456.25) < 1e-6)
+        end
 
         -- Pause during tutorial and resume back into tutorial
         if not pausedCheckDone and t > 3 then
@@ -253,8 +261,9 @@ local function step()
             spawnSeen = true
             local weapons = {"1", "2", "3", "4", "5"}
             game.keypressed(weapons[math.floor(t / 2) % 5 + 1])
-            mouseX, mouseY = e.x, e.y
-            game.mousepressed(e.x, e.y, 1)
+            -- Click where the enemy appears on screen (the game converts back to world coordinates)
+            mouseX, mouseY = worldToScreen(e.x, e.y)
+            game.mousepressed(mouseX, mouseY, 1)
         end
 
         if world.tutorial.completed and not tutorialDone then
