@@ -1,6 +1,12 @@
 local Enemy = {}
 Enemy.__index = Enemy
 
+-- When true, enemies draw a ring showing their AI state (toggle with F3)
+Enemy.debug = false
+
+-- Each level above 1 adds this fraction to health and damage
+local LEVEL_SCALING = 0.15
+
 -- Enemy configuration
 local config = {
     types = {
@@ -72,7 +78,7 @@ local config = {
     }
 }
 
-function Enemy.new(x, y, enemyType)
+function Enemy.new(x, y, enemyType, level)
     local self = setmetatable({}, Enemy)
     
     -- Position
@@ -84,11 +90,13 @@ function Enemy.new(x, y, enemyType)
     -- Stats
     self.type = enemyType or "ALIEN_WILDLIFE"
     self.stats = config.types[self.type]
-    self.health = self.stats.health
-    self.maxHealth = self.stats.health
+    self.level = level or 1
+    local scale = 1 + LEVEL_SCALING * (self.level - 1)
+    self.health = self.stats.health * scale
+    self.maxHealth = self.health
     
     -- Combat
-    self.damage = self.stats.damage
+    self.damage = self.stats.damage * scale
     self.attackRange = self.stats.attackRange
     self.attackCooldown = self.stats.attackCooldown
     self.attackTimer = 0
@@ -321,8 +329,14 @@ function Enemy:draw()
         end
     end
     
-    -- Draw state indicator (for debugging)
-    if self.target then
+    -- Level label for tougher enemies
+    if self.level > 1 then
+        love.graphics.setColor(1, 1, 1, 0.8)
+        love.graphics.print("Lv" .. self.level, self.x - 10, self.y - 40)
+    end
+
+    -- Draw state indicator (debug only)
+    if Enemy.debug and self.target then
         local stateColors = {
             patrol = {0, 1, 0},
             chase = {1, 1, 0},

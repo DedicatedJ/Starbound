@@ -225,6 +225,37 @@ local function runUnitTests()
     w:addEntity(p)
     w:update(DT)
     check("no chunk enemies during the tutorial", #w.enemies == 0, #w.enemies)
+
+    -- Enemy levels scale health and damage
+    local e1, e3 = Enemy.new(0, 0, "ALIEN_WILDLIFE", 1), Enemy.new(0, 0, "ALIEN_WILDLIFE", 3)
+    check("higher level enemies are tougher", e3.maxHealth > e1.maxHealth and e3.damage > e1.damage,
+        ("hp %s/%s dmg %s/%s"):format(e1.maxHealth, e3.maxHealth, e1.damage, e3.damage))
+    w = World.new({seed = seed, tutorial = false})
+    p = Player.new(0, 0)
+    w:addEntity(p)
+    w:update(DT)
+    check("level rises with distance from the start", w:levelForChunk(0, 1) == 1 and w:levelForChunk(6, 0) == 4,
+        ("%d %d"):format(w:levelForChunk(0, 1), w:levelForChunk(6, 0)))
+
+    -- Drone swarm keeps formation spacing while chasing
+    w = World.new({spawnEnemies = false, tutorial = false})
+    p = Player.new(200, 0)
+    w:addEntity(p)
+    local drones = {}
+    for i = 1, 4 do
+        local d = Enemy.new(0, 0, "ROBOTIC_DRONE")
+        d.attackRange = 0
+        table.insert(w.enemies, d); table.insert(drones, d)
+    end
+    for _ = 1, 30 do w:update(DT) end
+    local minDist = math.huge
+    for i = 1, #drones do
+        for j = i + 1, #drones do
+            minDist = math.min(minDist, math.sqrt((drones[i].x - drones[j].x) ^ 2 + (drones[i].y - drones[j].y) ^ 2))
+        end
+    end
+    check("drones keep formation spacing", minDist >= 50 * 0.8, minDist)
+    check("enemy debug rings are off by default", Enemy.debug == false)
 end
 
 function love.load(args)

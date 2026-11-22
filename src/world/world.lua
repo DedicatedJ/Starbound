@@ -13,6 +13,7 @@ local config = {
     maxEnemiesPerChunk = 5,
     activeRadius = 1,   -- chunks within this distance of the player have live enemies
     unloadRadius = 2,   -- enemies in chunks farther than this are despawned
+    chunksPerLevel = 2, -- enemy level rises by 1 for every this many chunks from the start
 -- Biome look and inhabitants; a world picks a subset of these
     biomes = {
         jungle = {
@@ -233,6 +234,9 @@ function World:update(dt)
         end
     end
     
+    -- Keep drone formations spread out
+    self:applySwarmSpacing()
+
     -- Stream chunks around the player
     self:updateChunks()
     
@@ -365,7 +369,10 @@ function World:updateChunks()
     local pcx, pcy = World.worldToChunk(player.x, player.y)
     self.currentChunk.x, self.currentChunk.y = pcx, pcy
     local here = World.chunkKey(pcx, pcy)
-    self.startChunkKey = self.startChunkKey or here
+    if not self.startChunkKey then
+        self.startChunkKey = here
+        self.startChunk = {x = pcx, y = pcy}
+    end
     self.explored[here] = true
 
     for cy = pcy - config.activeRadius, pcy + config.activeRadius do
@@ -399,14 +406,48 @@ function World:spawnChunkEnemies(chunk)
     end
     chunk.spawned = true
     chunk.enemiesAlive = 0
+    local level = self:levelForChunk(chunk.x, chunk.y)
     for _, spawn in ipairs(chunk.enemySpawns) do
-        local enemy = Enemy.new(spawn.x, spawn.y, spawn.enemyType)
+        local enemy = Enemy.new(spawn.x, spawn.y, spawn.enemyType, level)
         enemy.chunkKey = chunk.key
         table.insert(self.enemies, enemy)
         chunk.enemiesAlive = chunk.enemiesAlive + 1
     end
     if chunk.enemiesAlive == 0 then
         chunk.cleared = true
+    end
+end
+
+-- Enemies get tougher the farther a chunk is from where the player started
+function World:levelForChunk(chunkX, chunkY)
+    local start = self.startChunk or {x = 0, y = 0}
+    local distance = math.max(math.abs(chunkX - start.x), math.abs(chunkY - start.y))
+    return 1 + math.floor(distance / config.chunksPerLevel)
+end
+
+-- Swarm enemies (drones) push apart to keep their formation spacing
+function World:applySwarmSpacing()
+    for i = 1, #self.enemies do
+        local a = self.enemies[i]
+        local spacing = a.stats.behavior.formationSpacing
+        if spacing and not a.isDead then
+            for j = i + 1, #self.enemies do
+                local b = self.enemies[j]
+                if b.stats.behavior.formationSpacing and not b.isDead then
+                    local dx, dy = b.x - a.x, b.y - a.y
+                    local dist = math.sqrt(dx * dx + dy * dy)
+                    if dist < spacing then
+                        if dist < 0.001 then
+                            -- Exactly overlapping: separate along a fixed axis
+                            dx, dy, dist = 1, 0, 1
+                        end
+                        local push = (spacing - dist) / 2
+                        a.x, a.y = a.x - dx / dist * push, a.y - dy / dist * push
+                        b.x, b.y = b.x + dx / dist * push, b.y + dy / dist * push
+                    end
+                end
+            end
+        end
     end
 end
 

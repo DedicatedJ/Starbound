@@ -5,6 +5,7 @@
 local Player = require("src.entities.player")
 local World = require("src.world.world")
 local UI = require("src.ui.ui")
+local Enemy = require("src.entities.enemy")
 
 -- Game states
 local gameState = {
@@ -87,7 +88,10 @@ end
 
 -- Handle keyboard input
 function love.keypressed(key, scancode, isrepeat)
-    if key == "escape" then
+    if key == "f3" then
+        -- Toggle enemy AI debug rings
+        Enemy.debug = not Enemy.debug
+    elseif key == "escape" then
         if currentState == gameState.PLAYING or currentState == gameState.TUTORIAL then
             stateBeforePause = currentState
             currentState = gameState.PAUSED
