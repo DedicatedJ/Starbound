@@ -215,7 +215,12 @@ function onArrive(id)
         end})
     elseif id == "the_rift" and not session.flags.rift_arrival then
         session.flags.rift_arrival = true
-        startDialogue(Story.riftArrival)
+        local lines = {}
+        for _, line in ipairs(Story.riftArrival) do table.insert(lines, line) end
+        if session.flags.defied_varro then
+            for _, line in ipairs(Story.riftVarro) do table.insert(lines, line) end
+        end
+        startDialogue(lines)
     end
 end
 
@@ -832,7 +837,11 @@ function drawEnding()
     love.graphics.setColor(1, 0.9, 0.5)
     love.graphics.printf(ending.title, 0, h / 2 - 160, w / 2, "center", 0, 2)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.printf(ending.text, w / 2 - 320, h / 2 - 90, 640, "center")
+    local text = ending.text
+    if ending.defiedVarro and session.flags.defied_varro then
+        text = text .. " " .. ending.defiedVarro
+    end
+    love.graphics.printf(text, w / 2 - 320, h / 2 - 90, 640, "center")
     love.graphics.setColor(0.7, 0.7, 0.7)
     love.graphics.printf("Press Enter to return to the title screen", 0, h - 60, w, "center")
 end
