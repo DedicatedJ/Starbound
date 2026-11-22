@@ -559,6 +559,24 @@ function love.load(args)
     -- love.load must leave the window as conf.lua configured it (no setMode override)
     local w0, h0, flags0 = love.window.getMode()
     game.load()
+    
+    -- Strict globals from here on: the game may not create new globals or read undefined ones
+    -- (catches typos and accidental globals). Its intended global functions already exist.
+    strictViolations = {}
+    local function whereFrom()
+        local info = debug.getinfo(3, "Sl")
+        return info and (info.short_src .. ":" .. tostring(info.currentline)) or "?"
+    end
+    setmetatable(_G, {
+        __newindex = function(t, key, value)
+            strictViolations["assigned new global '" .. tostring(key) .. "'"] = whereFrom()
+            rawset(t, key, value)
+        end,
+        __index = function(_, key)
+            strictViolations["read undefined global '" .. tostring(key) .. "'"] = whereFrom()
+            return nil
+        end
+    })
     local w1, h1, flags1 = love.window.getMode()
     check("love.load does not override the window mode", w0 == w1 and h0 == h1 and flags0.resizable == flags1.resizable,
         ("%dx%d resizable=%s -> %dx%d resizable=%s"):format(w0, h0, tostring(flags0.resizable), w1, h1, tostring(flags1.resizable)))
@@ -875,6 +893,10 @@ function harnessUpdate(dt)
         end
     end
     if sim.phase == "done" then
+        local list = {}
+        for what, where in pairs(strictViolations or {}) do table.insert(list, what .. " at " .. where) end
+        table.sort(list)
+        check("no accidental or undefined globals during play", #list == 0, table.concat(list, "; "))
         flush()
         love.event.quit(failures == 0 and 0 or 1)
     end
