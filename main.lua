@@ -1,4 +1,4 @@
--- Starbound Legacy
+-- The Last Starchart
 -- Main game entry point
 
 -- Import game modules
@@ -802,7 +802,7 @@ function drawMenu()
     -- Draw title screen
     love.graphics.setColor(1, 1, 1)
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-    love.graphics.print("Starbound Legacy", w / 2 - 100, h / 2 - 50, 0, 2)
+    love.graphics.print("The Last Starchart", w / 2 - 100, h / 2 - 50, 0, 2)
     love.graphics.print("Press SPACE to Start a New Game", w / 2 - 100, h / 2 + 50, 0, 1)
     if Save.exists() then
         love.graphics.print("Press L to Load Saved Game", w / 2 - 100, h / 2 + 75, 0, 1)

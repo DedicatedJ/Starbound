@@ -1,8 +1,8 @@
 -- Test harness configuration.
 function love.conf(t)
-    t.identity = "starbound_legacy_tests"   -- separate save folder so tests never touch real saves
+    t.identity = "last_starchart_tests"   -- separate save folder so tests never touch real saves
     t.console = false
-    t.window.title = "Starbound Legacy tests"
+    t.window.title = "The Last Starchart tests"
     t.window.width = 1280
     t.window.height = 720
     t.window.vsync = 0                      -- run frames as fast as possible

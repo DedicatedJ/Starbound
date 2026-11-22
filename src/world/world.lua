@@ -37,7 +37,7 @@ enemySpawnChance = 0.55,
         steps = {
             {
                 type = "message",
-                text = "Welcome to Starbound Legacy! Let's learn the basics of combat.",
+                text = "Welcome to The Last Starchart! Let's learn the basics of combat.",
                 duration = 5
             },
             {

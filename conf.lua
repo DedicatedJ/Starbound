@@ -1,9 +1,9 @@
 function love.conf(t)
-    t.identity = "starbound_legacy"        -- The name of the save directory
+    t.identity = "last_starchart"        -- The name of the save directory
     t.version = "11.4"                     -- The LÖVE version this game was made for
     t.console = true                       -- Enable the console (useful for debugging)
     
-    t.window.title = "Starbound Legacy"    -- The window title
+    t.window.title = "The Last Starchart"    -- The window title
     t.window.icon = nil                    -- Filepath to an image to use as the window's icon
     t.window.width = 1280                  -- The window width
     t.window.height = 720                  -- The window height
