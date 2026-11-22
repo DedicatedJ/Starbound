@@ -312,13 +312,15 @@ function collectFragment(locationId)
 end
 
 -- Arrow toward a world position: a marker above it when on screen, otherwise at the screen edge
-local function drawMarker(wx, wy, label)
+local function drawMarker(wx, wy, label, offScreenOnly)
     local sx, sy = worldToScreen(wx, wy)
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     local distance = math.floor(math.sqrt((wx - player.x) ^ 2 + (wy - player.y) ^ 2) / 32)
     love.graphics.setColor(1, 0.9, 0.3)
     if sx >= 0 and sx <= w and sy >= 0 and sy <= h then
-        love.graphics.polygon("fill", sx, sy - 90, sx - 8, sy - 104, sx + 8, sy - 104)
+        if not offScreenOnly then
+            love.graphics.polygon("fill", sx, sy - 90, sx - 8, sy - 104, sx + 8, sy - 104)
+        end
         return
     end
     local cx, cy = w / 2, h / 2
@@ -762,6 +764,15 @@ function drawGame()
     -- Screen-space world overlays (tutorial text)
     world:drawOverlay()
 
+    -- During the tutorial fight, point to enemies that fled off screen
+    if world:tutorialActive() then
+        for _, enemy in ipairs(world.enemies) do
+            if enemy.isTutorialEnemy and not enemy.isDead then
+                drawMarker(enemy.x, enemy.y, "Enemy", true)
+            end
+        end
+    end
+    
     -- Point the way to an unopened vault, or to the Arkadia
     if world.vault and not world.vault.collected and not world:tutorialActive() then
         drawMarker(world.vault.x, world.vault.y, "Vault")
