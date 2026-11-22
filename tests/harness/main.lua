@@ -330,6 +330,30 @@ local function runUnitTests()
     check("tampered saves cannot call functions", bad1 == nil)
     check("runaway save code is stopped", bad2 == nil)
     check("non-table saves are rejected", bad3 == nil)
+
+    -- Utils
+    local Utils = require("src.utils.utils")
+    local seenMin, seenMax = false, false
+    for _ = 1, 500 do
+        local v = Utils.randomInt(1, 3)
+        if v == 1 then seenMin = true elseif v == 3 then seenMax = true end
+        if v < 1 or v > 3 or v % 1 ~= 0 then seenMin = nil end
+    end
+    check("randomInt covers both ends", seenMin == true and seenMax == true)
+    local hr, hg, hb = Utils.hexToRGB("#FF8000")
+    check("hexToRGB returns 0-1 components", hr == 1 and math.abs(hg - 128 / 255) < 1e-9 and hb == 0)
+    check("RGBToHex takes 0-1 components", Utils.RGBToHex(1, 128 / 255, 0) == "#FF8000", Utils.RGBToHex(1, 128 / 255, 0))
+    local parts = Utils.split("a,b,,c", ",")
+    local pct = Utils.split("10%20%30", "%")
+    check("split skips empty fields", #parts == 3 and parts[3] == "c")
+    check("split handles pattern characters", #pct == 3 and pct[2] == "20", #pct)
+    check("trim, clamp, lerp, formatTime", Utils.trim("  hi  ") == "hi" and Utils.clamp(5, 0, 3) == 3
+        and Utils.lerp(0, 10, 0.25) == 2.5 and Utils.formatTime(125) == "02:05")
+    love.filesystem.write("debug.log", "")
+    local okDebug = pcall(Utils.debugPrint, "x", 1, nil, true)
+    local logged = love.filesystem.read("debug.log") or ""
+    love.filesystem.remove("debug.log")
+    check("debugPrint writes non-string values to debug.log", okDebug and logged:find("x 1 nil true", 1, true) ~= nil, logged)
 end
 
 function love.load(args)

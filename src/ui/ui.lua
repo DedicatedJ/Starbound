@@ -1,4 +1,5 @@
 local Loot = require("src.entities.loot")
+local Utils = require("src.utils.utils")
 local World = require("src.world.world")
 
 local UI = {}
@@ -119,7 +120,7 @@ function UI:drawHUD()
 end
 
 function UI:drawBar(x, y, w, h, fraction, color)
-    fraction = math.max(0, math.min(1, fraction))
+    fraction = Utils.clamp(fraction, 0, 1)
     
     -- Background
     love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
