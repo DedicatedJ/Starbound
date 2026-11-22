@@ -395,6 +395,15 @@ local function runUnitTests()
     w:addInteractable({x = 0, y = 0, radius = 50, onInteract = function() used = true end})
     check("nearest interactable within radius", w:nearestInteractable(10, 10) ~= nil and w:nearestInteractable(200, 200) == nil)
 
+    -- Star map: the jump range ring uses the same scale as node positions
+    local StarMap = require("src.ui.starmap")
+    local sm = StarMap.new(Session.new(1))
+    local scale = sm:mapScale()
+    local ax, ay = sm:nodePosition(Session.locationData("kepler_reach"))
+    local bx, by = sm:nodePosition(Session.locationData("cinder"))
+    local pixelDistance = math.sqrt((ax - bx) ^ 2 + (ay - by) ^ 2)
+    check("star map distances are drawn to scale", math.abs(pixelDistance - Session.distance("kepler_reach", "cinder") * scale) < 1e-6)
+
     -- Upgrades
     local Upgrades = require("src.game.upgrades")
     s = Session.new(5)
@@ -809,9 +818,15 @@ local function step()
         sess.upgrades.void_shielding = true
         sess.flags.pirate_deal = true
         sess.flags.mara_alive_clue = true
+        sess.flags.met_quill = true
         enterLocation("the_rift")
         check("arriving at the Rift plays a message", state() == "dialogue", state())
+        check("the HUD objective is current on arrival", upvalue(updateGame, "ui").objective == "Board the Arkadia",
+            tostring(upvalue(updateGame, "ui").objective))
+        -- A dialogue started while another is open must not trap the game
+        startDialogue({{text = "nested"}})
         game.keypressed("escape")
+        check("a nested dialogue returns to normal play, not a stuck dialogue state", state() == "tutorial", state())
         local rift = getWorld()
         check("the Rift holds the Arkadia", rift.arkadia ~= nil)
         player = getPlayer()

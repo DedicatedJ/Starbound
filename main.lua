@@ -46,6 +46,7 @@ local ui
 local starMap
 local shop
 local dialogue = Dialogue.new()
+local dialogueReturnState   -- where the open dialogue returns to
 local endingId          -- which ending is being shown
 
 -- Camera center in world coordinates; it follows the player
@@ -186,6 +187,10 @@ function enterLocation(id, options)
     -- Varro's truce makes pirates passive everywhere
     world.passivePirates = session.flags.pirate_deal == true
 
+    -- Refresh the HUD now; an arrival dialogue may run before the next game update
+    ui.prompt = nil
+    ui.objective = currentObjective()
+
     if not options.keepPosition then
         onArrive(id)
     end
@@ -217,8 +222,13 @@ end
 -- Show a dialogue; the game pauses behind it and resumes when it ends
 function startDialogue(lines, options)
     options = options or {}
-    local returnState = options.returnState or currentState
+    -- A dialogue started while another is open returns where the first one would have
+    local returnState = options.returnState
+        or (currentState == gameState.DIALOGUE and dialogueReturnState)
+        or currentState
+    dialogueReturnState = returnState
     currentState = gameState.DIALOGUE
+    if ui then ui.prompt = nil end   -- no interaction prompt showing through the dialogue box
     dialogue:start(lines, {
         skippable = options.skippable,
         flags = session.flags,

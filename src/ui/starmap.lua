@@ -41,11 +41,18 @@ function StarMap:selectedLocation()
     return Session.locations()[self.selected]
 end
 
--- Screen position of a location node
-function StarMap:nodePosition(loc)
+-- Map units to pixels: one uniform scale, so distances (and the jump range ring) are true
+function StarMap:mapScale()
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     local mapW, mapH = w - MARGIN * 2 - 320, h - MARGIN * 2
-    return MARGIN + loc.x * mapW, MARGIN + loc.y * mapH
+    local scale = math.min(mapW, mapH)
+    return scale, MARGIN + (mapW - scale) / 2, MARGIN + (mapH - scale) / 2
+end
+
+-- Screen position of a location node
+function StarMap:nodePosition(loc)
+    local scale, originX, originY = self:mapScale()
+    return originX + loc.x * scale, originY + loc.y * scale
 end
 
 function StarMap:nodeAt(sx, sy)
@@ -72,9 +79,8 @@ function StarMap:draw()
     -- Jump range ring around the current location
     local current = session:currentLocation()
     local cx, cy = self:nodePosition(current)
-    local mapW = w - MARGIN * 2 - 320
     love.graphics.setColor(0.3, 0.6, 1, 0.25)
-    love.graphics.circle("line", cx, cy, session:jumpRange() * mapW)
+    love.graphics.circle("line", cx, cy, session:jumpRange() * self:mapScale())
 
     -- Routes from here: green if the jump is possible, dim red if not
     for _, loc in ipairs(Session.locations()) do
