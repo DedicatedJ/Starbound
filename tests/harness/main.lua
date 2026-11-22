@@ -370,6 +370,27 @@ local function runUnitTests()
     check("docking at the station refuels", s.fuel == s:maxFuel() and s.location == "drift_station")
     s.upgrades.jump_drive = true
     check("jump drive upgrade extends range", (s:canTravel("glacius")))
+
+    -- Stats generated from the lore vault reach the game
+    local WeaponData = require("src.data.weapons")
+    local EnemyData = require("src.data.enemies")
+    local UpgradeData = require("src.data.upgrades")
+    check("weapon keys 1 to 5 follow the vault's weapon order",
+        #Player.WEAPON_ORDER == #WeaponData and Player.WEAPON_ORDER[1] == WeaponData[1].id and Player.WEAPON_ORDER[5] == WeaponData[5].id,
+        table.concat(Player.WEAPON_ORDER, ","))
+    local wp = Player.new(0, 0)
+    check("weapon stats come from src/data/weapons.lua",
+        wp.weapons.scatter_shot.projectileCount == WeaponData[4].projectileCount and wp.weapons.ion_cannon.effects.chargeTime == WeaponData[3].chargeTime
+        and wp.weapons.void_beam.effects.pierce == true)
+    local we = Enemy.new(0, 0, "SPACE_PIRATE", 1)
+    check("enemy stats and drops come from src/data/enemies.lua",
+        we.maxHealth == EnemyData.SPACE_PIRATE.health and #we.stats.drops == #EnemyData.SPACE_PIRATE.drops and we.stats.behavior.type == "tactical")
+    local fuelBonus = 0
+    for _, u in ipairs(UpgradeData) do if u.id == "fuel_tanks" then fuelBonus = u.maxFuelBonus end end
+    local before = s:maxFuel()
+    s.upgrades.fuel_tanks = true
+    check("fuel tank bonus comes from the upgrade data", s:maxFuel() == before + fuelBonus and fuelBonus > 0, s:maxFuel())
+    s.upgrades.fuel_tanks = nil
     s.location = "glacius"
     local okRift, _, whyRift = s:canTravel("the_rift")
     check("the Rift needs all fragments", not okRift and whyRift:find("fragments") ~= nil, whyRift)

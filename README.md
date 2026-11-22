@@ -12,6 +12,16 @@ The story, characters, puzzles, planets and upgrades were drafted from that prem
 
 The game's lore lives in [`lore/`](lore/), an [Obsidian](https://obsidian.md/) vault: one linked note per character, place, item, faction, event and ending, plus a timeline and a list of open questions. Open the `lore` folder as a vault in Obsidian and start at `Home.md`. Change the lore there first, then update the matching file under `src/data/`.
 
+The vault is also where the game's numbers live: weapon, enemy, pickup, upgrade and location stats are note properties, with editable balance tables in `lore/Balance/`. `tools/gen_data.py` turns them into `src/data/*.lua` (it needs Python 3 and PyYAML: `pip install pyyaml`):
+
+```
+python tools/gen_data.py           # regenerate src/data from the vault
+python tools/gen_data.py --check   # what CI runs: fails if src/data is stale
+git config core.hooksPath .githooks   # once per clone: regenerate automatically on commit
+```
+
+Do not edit the generated data files by hand; CI rejects them if they differ from the vault.
+
 ## Features
 
 - **Six locations** on Mara's star map: the landing planet Kepler Reach, the Drift Station hub, three planets hiding vaults (Cinder, Glacius, Verdant Deep) and the Rift.

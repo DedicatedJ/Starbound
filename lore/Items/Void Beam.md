@@ -3,9 +3,23 @@ type: item
 status: idea
 aliases: []
 in-game:
-  - "src/entities/player.lua (Void Beam)"
+  - src/data/weapons.lua
+game_kind: weapon
+game_id: void_beam
+order: 5
+damage: 15
+fire_cooldown: 0.2
+energy_cost: 20
+range: 600
+projectile_speed: 600
+projectile_size: 6
+projectile_count: 1
+spread_degrees: 0
+charge_time: 0
+pierce_count: 3
 tags:
   - lore/item
+  - game/weapon
 ---
 
 # Void Beam

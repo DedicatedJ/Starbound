@@ -1,0 +1,34 @@
+filters:
+  and:
+    - 'game_kind == "enemy"'
+formulas:
+  dps: damage / attack_cooldown
+properties:
+  formula.dps:
+    displayName: DPS at level 1
+views:
+  - type: table
+    name: Enemies
+    order:
+      - file.name
+      - game_name
+      - health
+      - damage
+      - attack_cooldown
+      - formula.dps
+      - attack_range
+      - move_speed
+      - chase_range
+      - patrol_radius
+      - retreat_health
+  - type: table
+    name: Drops
+    order:
+      - file.name
+      - drop_health_crystal
+      - drop_energy_crystal
+      - drop_shield_crystal
+      - drop_weapon_upgrade
+      - drop_repair_kit
+      - drop_salvage
+      - drop_alien_essence

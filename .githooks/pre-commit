@@ -1,0 +1,33 @@
+#!/bin/sh
+# Keeps src/data in step with the lore vault (see tools/gen_data.py).
+# Enable once per clone:  git config core.hooksPath .githooks
+GENERATED="src/data/weapons.lua src/data/enemies.lua src/data/pickups.lua src/data/upgrades.lua src/data/galaxy.lua src/data/balance.lua"
+
+staged=$(git diff --cached --name-only)
+lore_changed=$(printf '%s\n' "$staged" | grep -c '^lore/')
+data_changed=0
+for f in $GENERATED; do
+    printf '%s\n' "$staged" | grep -qx "$f" && data_changed=1
+done
+[ "$lore_changed" -eq 0 ] && [ "$data_changed" -eq 0 ] && exit 0
+
+PY=""
+for candidate in python3 python; do
+    if "$candidate" -c "import yaml" >/dev/null 2>&1; then PY=$candidate; break; fi
+done
+if [ -z "$PY" ]; then
+    echo "pre-commit: needs Python with PyYAML (pip install pyyaml) to keep src/data in step with lore/" >&2
+    exit 1
+fi
+
+if [ "$lore_changed" -gt 0 ]; then
+    # Lore notes changed: regenerate the data files and add them to this commit
+    "$PY" tools/gen_data.py || exit 1
+    git add $GENERATED
+else
+    # Only generated files changed: they must match the vault (no hand edits)
+    "$PY" tools/gen_data.py --check || {
+        echo "pre-commit: src/data files are generated. Change the lore notes instead." >&2
+        exit 1
+    }
+fi

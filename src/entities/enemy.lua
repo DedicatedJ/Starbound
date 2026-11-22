@@ -4,81 +4,36 @@ Enemy.__index = Enemy
 -- When true, enemies draw a ring showing their AI state (toggle with F3)
 Enemy.debug = false
 
--- Each level above 1 adds this fraction to health and damage
-local LEVEL_SCALING = 0.15
+-- Numbers come from src/data (generated from the lore vault by tools/gen_data.py);
+-- this file keeps behavior and looks.
+local Balance = require("src.data.balance")
+local EnemyData = require("src.data.enemies")
 
--- Enemy configuration
+-- Each level above 1 adds this fraction to health and damage
+local LEVEL_SCALING = Balance.enemies.levelScaling
+
+-- How each enemy type looks and which AI it uses; stats are merged in below
 local config = {
     types = {
-        ALIEN_WILDLIFE = {
-            name = "Alien Wildlife",
-            health = 50,
-            damage = 10,
-            moveSpeed = 100,
-            attackRange = 100,
-            attackCooldown = 1.0,
-            color = {1, 0.5, 0}, -- Orange
-            drops = {
-                {item = "health_crystal", chance = 0.3},
-                {item = "energy_crystal", chance = 0.2},
-                {item = "alien_essence", chance = 0.35}
-            },
-            behavior = {
-                type = "aggressive",
-                patrolRadius = 200,
-                chaseRange = 300,
-                retreatHealth = 0.3
-            }
-        },
-        SPACE_PIRATE = {
-            name = "Space Pirate",
-            health = 75,
-            damage = 15,
-            moveSpeed = 150,
-            attackRange = 150,
-            attackCooldown = 0.8,
-            color = {0.8, 0, 0}, -- Red
-            drops = {
-                {item = "health_crystal", chance = 0.4},
-                {item = "energy_crystal", chance = 0.3},
-                {item = "weapon_upgrade", chance = 0.15},
-                {item = "shield_crystal", chance = 0.1},
-                {item = "salvage", chance = 0.6}
-            },
-            behavior = {
-                type = "tactical",
-                patrolRadius = 300,
-                chaseRange = 400,
-                retreatHealth = 0.4,
-                strafeSpeed = 100,
-                strafeRange = 100
-            }
-        },
-        ROBOTIC_DRONE = {
-            name = "Robotic Drone",
-            health = 40,
-            damage = 8,
-            moveSpeed = 200,
-            attackRange = 120,
-            attackCooldown = 0.5,
-            color = {0.5, 0.5, 0.5}, -- Gray
-            drops = {
-                {item = "energy_crystal", chance = 0.5},
-                {item = "weapon_upgrade", chance = 0.2},
-                {item = "shield_crystal", chance = 0.15},
-                {item = "repair_kit", chance = 0.1},
-                {item = "salvage", chance = 0.6}
-            },
-            behavior = {
-                type = "swarm",
-                patrolRadius = 150,
-                chaseRange = 250,
-                retreatHealth = 0.2,
-                formationSpacing = 50
-            }
-        }
+        ALIEN_WILDLIFE = {color = {1, 0.5, 0}, behavior = {type = "aggressive"}}, -- Orange
+        SPACE_PIRATE = {color = {0.8, 0, 0}, behavior = {type = "tactical"}},     -- Red
+        ROBOTIC_DRONE = {color = {0.5, 0.5, 0.5}, behavior = {type = "swarm"}}    -- Gray
     }
 }
+for id, stats in pairs(EnemyData) do
+    local enemyType = config.types[id]
+    assert(enemyType, "enemy type " .. id .. " is in the lore vault but has no AI in src/entities/enemy.lua")
+    for key, value in pairs(stats) do
+        if key == "behavior" then
+            for bkey, bvalue in pairs(value) do enemyType.behavior[bkey] = bvalue end
+        else
+            enemyType[key] = value
+        end
+    end
+end
+for id, enemyType in pairs(config.types) do
+    assert(enemyType.health, "enemy type " .. id .. " has no stats in the lore vault")
+end
 
 function Enemy.new(x, y, enemyType, level)
     local self = setmetatable({}, Enemy)

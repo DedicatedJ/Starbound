@@ -1,17 +1,17 @@
+local PickupData = require("src.data.pickups")
+
 local Loot = {}
 Loot.__index = Loot
 
--- Loot configuration
+-- How each pickup looks and what it does; name, value and lifetime come from
+-- src/data/pickups.lua (generated from the lore vault by tools/gen_data.py)
 local config = {
     items = {
         health_crystal = {
-            name = "Health Crystal",
             type = "consumable",
             effect = "heal",
-            value = 25,
             color = {1, 0, 0, 1},
             size = 10,
-            lifetime = 30,
             effects = {
                 glow = true,
                 glowColor = {1, 0, 0, 0.3},
@@ -21,13 +21,10 @@ local config = {
             }
         },
         energy_crystal = {
-            name = "Energy Crystal",
             type = "consumable",
             effect = "energy",
-            value = 25,
             color = {0, 1, 1, 1},
             size = 10,
-            lifetime = 30,
             effects = {
                 glow = true,
                 glowColor = {0, 1, 1, 0.3},
@@ -37,13 +34,10 @@ local config = {
             }
         },
         shield_crystal = {
-            name = "Shield Crystal",
             type = "consumable",
             effect = "shield",
-            value = 25,
             color = {0, 0, 1, 1},
             size = 10,
-            lifetime = 30,
             effects = {
                 glow = true,
                 glowColor = {0, 0, 1, 0.3},
@@ -53,13 +47,10 @@ local config = {
             }
         },
         weapon_upgrade = {
-            name = "Weapon Upgrade",
             type = "upgrade",
             effect = "damage",
-            value = 5,
             color = {1, 1, 0, 1},
             size = 12,
-            lifetime = 60,
             effects = {
                 glow = true,
                 glowColor = {1, 1, 0, 0.3},
@@ -68,13 +59,10 @@ local config = {
             }
         },
         repair_kit = {
-            name = "Repair Kit",
             type = "consumable",
             effect = "repair",
-            value = 50,
             color = {0.5, 0.5, 0.5, 1},
             size = 12,
-            lifetime = 60,
             effects = {
                 glow = true,
                 glowColor = {0.5, 0.5, 0.5, 0.3},
@@ -84,13 +72,10 @@ local config = {
             }
         },
         salvage = {
-            name = "Salvage",
             type = "material",
             effect = "craft",
-            value = 50,
             color = {0.55, 0.65, 0.75, 1},
             size = 11,
-            lifetime = 120,
             effects = {
                 glow = true,
                 glowColor = {0.55, 0.65, 0.75, 0.3},
@@ -99,13 +84,10 @@ local config = {
             }
         },
         alien_essence = {
-            name = "Alien Essence",
             type = "material",
             effect = "craft",
-            value = 100,
             color = {0.5, 0, 0.5, 1},
             size = 15,
-            lifetime = 120,
             effects = {
                 glow = true,
                 glowColor = {0.5, 0, 0.5, 0.3},
@@ -118,6 +100,14 @@ local config = {
         }
     }
 }
+for id, stats in pairs(PickupData) do
+    local item = config.items[id]
+    assert(item, "pickup " .. id .. " is in the lore vault but has no behavior in src/entities/loot.lua")
+    for key, value in pairs(stats) do item[key] = value end
+end
+for id, item in pairs(config.items) do
+    assert(item.value, "pickup " .. id .. " has no stats in the lore vault")
+end
 
 function Loot.new(x, y, itemType)
     local self = setmetatable({}, Loot)

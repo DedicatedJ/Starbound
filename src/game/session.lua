@@ -1,13 +1,16 @@
 -- Campaign state that outlives any single location: where the ship is, fuel,
 -- upgrades, story flags and star map fragments.
 local Galaxy = require("src.data.galaxy")
+local Balance = require("src.data.balance")
+local UpgradeData = require("src.data.upgrades")
 
 local Session = {}
 Session.__index = Session
 
-Session.BASE_JUMP_RANGE = 0.30
-Session.BASE_MAX_FUEL = 3
-Session.FUEL_PER_JUMP = 1
+-- Tuned in the lore vault (Mechanics/Global Balance)
+Session.BASE_JUMP_RANGE = Balance.travel.baseJumpRange
+Session.BASE_MAX_FUEL = Balance.travel.baseMaxFuel
+Session.FUEL_PER_JUMP = Balance.travel.fuelPerJump
 
 local locationsById = {}
 for index, loc in ipairs(Galaxy.locations) do
@@ -50,11 +53,22 @@ function Session:hasUpgrade(id)
 end
 
 function Session:jumpRange()
-    return Session.BASE_JUMP_RANGE + (self:hasUpgrade("jump_drive") and 0.15 or 0)
+    return Session.BASE_JUMP_RANGE + self:upgradeTotal("jumpRangeBonus")
+end
+
+-- Sum of one bonus field over the installed ship upgrades
+function Session:upgradeTotal(field)
+    local total = 0
+    for _, upgrade in ipairs(UpgradeData) do
+        if self:hasUpgrade(upgrade.id) and upgrade[field] then
+            total = total + upgrade[field]
+        end
+    end
+    return total
 end
 
 function Session:maxFuel()
-    return Session.BASE_MAX_FUEL + (self:hasUpgrade("fuel_tanks") and 3 or 0)
+    return Session.BASE_MAX_FUEL + self:upgradeTotal("maxFuelBonus")
 end
 
 function Session:fragmentCount()

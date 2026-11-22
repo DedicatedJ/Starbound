@@ -3,11 +3,23 @@ type: place
 status: draft
 aliases: []
 in-game:
-  - "src/data/galaxy.lua (drift_station)"
+  - src/data/galaxy.lua (drift_station)
   - src/ui/shop.lua
 kind: station
+game_kind: location
+game_id: drift_station
+order: 2
+location_kind: station
+map_x: 0.3
+map_y: 0.45
+biomes:
+  - space_station
+level_bonus: 0
+safe: true
+map_text: "A trading hub run by Quill, an old drone who knew your mother. Refuel and upgrades."
 tags:
   - lore/place
+  - game/location
 ---
 
 # Drift Station

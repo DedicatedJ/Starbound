@@ -1,0 +1,35 @@
+filters:
+  and:
+    - 'game_kind == "weapon"'
+formulas:
+  dps: damage * projectile_count / fire_cooldown
+  energy_per_second: energy_cost / fire_cooldown
+  damage_per_energy: damage * projectile_count / energy_cost
+properties:
+  formula.dps:
+    displayName: DPS (all pellets)
+  formula.energy_per_second:
+    displayName: Energy per second
+  formula.damage_per_energy:
+    displayName: Damage per energy
+views:
+  - type: table
+    name: Weapons
+    order:
+      - file.name
+      - order
+      - damage
+      - fire_cooldown
+      - energy_cost
+      - range
+      - projectile_speed
+      - projectile_count
+      - spread_degrees
+      - charge_time
+      - pierce_count
+      - formula.dps
+      - formula.energy_per_second
+      - formula.damage_per_energy
+    sort:
+      - property: order
+        direction: ASC

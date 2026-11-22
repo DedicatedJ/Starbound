@@ -1,0 +1,11 @@
+filters:
+  and:
+    - 'game_kind == "pickup"'
+views:
+  - type: table
+    name: Pickups
+    order:
+      - file.name
+      - game_id
+      - value
+      - lifetime
