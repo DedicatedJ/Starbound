@@ -1,116 +1,80 @@
 local Utils = require("src.utils.utils")
+local Balance = require("src.data.balance")
+local WeaponData = require("src.data.weapons")
 
 local Player = {}
 Player.__index = Player
 
+-- Numbers come from src/data (generated from the lore vault by tools/gen_data.py);
+-- this file keeps behavior and looks.
+
 -- Highest level a weapon can be upgraded to
-local MAX_WEAPON_LEVEL = 10
+local MAX_WEAPON_LEVEL = Balance.player.maxWeaponLevel
 
 -- Base stats before gear upgrades (see src/game/upgrades.lua)
 Player.BASE = {
-    maxHealth = 100,
-    maxShield = 100,
-    maxEnergy = 100,
-    energyRechargeRate = 10
+    maxHealth = Balance.player.maxHealth,
+    maxShield = Balance.player.maxShield,
+    maxEnergy = Balance.player.maxEnergy,
+    energyRechargeRate = Balance.player.energyRechargeRate
 }
+
+-- Weapon ids in switch order (keys 1 to 5)
+Player.WEAPON_ORDER = {}
+for index, weapon in ipairs(WeaponData) do
+    Player.WEAPON_ORDER[index] = weapon.id
+end
+
+-- How each weapon looks; its stats are merged in from src/data/weapons.lua below
+local WEAPON_LOOKS = {
+    laser_pistol = {
+        color = {0, 1, 1}, -- Cyan
+        effects = {trail = true, trailColor = {0, 1, 1, 0.5}, trailLength = 10}
+    },
+    plasma_rifle = {
+        color = {1, 0, 1}, -- Magenta
+        effects = {trail = true, trailColor = {1, 0, 1, 0.5}, trailLength = 15, glow = true, glowColor = {1, 0, 1, 0.3}}
+    },
+    ion_cannon = {
+        color = {0, 0.8, 1}, -- Light Blue
+        effects = {trail = true, trailColor = {0, 0.8, 1, 0.5}, trailLength = 20, glow = true, glowColor = {0, 0.8, 1, 0.4}}
+    },
+    scatter_shot = {
+        color = {1, 0.5, 0}, -- Orange
+        effects = {trail = true, trailColor = {1, 0.5, 0, 0.5}, trailLength = 8}
+    },
+    void_beam = {
+        color = {0.5, 0, 0.5}, -- Purple
+        effects = {trail = true, trailColor = {0.5, 0, 0.5, 0.5}, trailLength = 25, glow = true, glowColor = {0.5, 0, 0.5, 0.3}}
+    }
+}
+-- A weapon added in the vault without a look here is drawn plain white
+local DEFAULT_LOOK = {color = {1, 1, 1}, effects = {trail = true, trailColor = {1, 1, 1, 0.5}, trailLength = 10}}
 
 -- Player configuration
 local config = {
-    moveSpeed = 200,
-    maxHealth = 100,
-    shieldRechargeRate = 5,
-    shieldRechargeDelay = 2,
-    inventorySize = 8,
-    weapons = {
-        laser_pistol = {
-            name = "Laser Pistol",
-            damage = 10,
-            fireRate = 0.5,
-            energyCost = 5,
-            range = 300,
-            projectileSpeed = 400,
-            color = {0, 1, 1}, -- Cyan
-            projectileSize = 5,
-            effects = {
-                trail = true,
-                trailColor = {0, 1, 1, 0.5},
-                trailLength = 10
-            }
-        },
-        plasma_rifle = {
-            name = "Plasma Rifle",
-            damage = 20,
-            fireRate = 0.3,
-            energyCost = 10,
-            range = 400,
-            projectileSpeed = 500,
-            color = {1, 0, 1}, -- Magenta
-            projectileSize = 8,
-            effects = {
-                trail = true,
-                trailColor = {1, 0, 1, 0.5},
-                trailLength = 15,
-                glow = true,
-                glowColor = {1, 0, 1, 0.3}
-            }
-        },
-        ion_cannon = {
-            name = "Ion Cannon",
-            damage = 35,
-            fireRate = 1.0,
-            energyCost = 25,
-            range = 500,
-            projectileSpeed = 300,
-            color = {0, 0.8, 1}, -- Light Blue
-            projectileSize = 12,
-            effects = {
-                trail = true,
-                trailColor = {0, 0.8, 1, 0.5},
-                trailLength = 20,
-                glow = true,
-                glowColor = {0, 0.8, 1, 0.4},
-                charge = true,
-                chargeTime = 0.5
-            }
-        },
-        scatter_shot = {
-            name = "Scatter Shot",
-            damage = 8,
-            fireRate = 0.4,
-            energyCost = 15,
-            range = 250,
-            projectileSpeed = 350,
-            color = {1, 0.5, 0}, -- Orange
-            projectileSize = 4,
-            projectileCount = 5,
-            spreadAngle = math.pi / 6,
-            effects = {
-                trail = true,
-                trailColor = {1, 0.5, 0, 0.5},
-                trailLength = 8
-            }
-        },
-        void_beam = {
-            name = "Void Beam",
-            damage = 15,
-            fireRate = 0.2,
-            energyCost = 20,
-            range = 600,
-            projectileSpeed = 600,
-            color = {0.5, 0, 0.5}, -- Purple
-            projectileSize = 6,
-            effects = {
-                trail = true,
-                trailColor = {0.5, 0, 0.5, 0.5},
-                trailLength = 25,
-                glow = true,
-                glowColor = {0.5, 0, 0.5, 0.3},
-                pierce = true,
-                pierceCount = 3
-            }
-        }
-    }
+    moveSpeed = Balance.player.moveSpeed,
+    maxHealth = Balance.player.maxHealth,
+    shieldRechargeRate = Balance.player.shieldRechargeRate,
+    shieldRechargeDelay = Balance.player.shieldRechargeDelay,
+    inventorySize = Balance.player.inventorySize,
+    weapons = {}
 }
+for _, stats in ipairs(WeaponData) do
+    local weapon = Utils.copyTable(WEAPON_LOOKS[stats.id] or DEFAULT_LOOK)
+    for key, value in pairs(stats) do
+        if key == "chargeTime" then
+            weapon.effects.charge = true
+            weapon.effects.chargeTime = value
+        elseif key == "pierceCount" then
+            weapon.effects.pierce = true
+            weapon.effects.pierceCount = value
+        elseif key ~= "id" then
+            weapon[key] = value
+        end
+    end
+    config.weapons[stats.id] = weapon
+end
 
 function Player.new(x, y)
     local self = setmetatable({}, Player)
@@ -134,7 +98,7 @@ function Player.new(x, y)
     self.inventorySize = config.inventorySize
     
     -- Equipment
-    self.currentWeapon = "laser_pistol"
+    self.currentWeapon = Player.WEAPON_ORDER[1]
     -- Each player owns a copy of the weapon stats so upgrades never leak between players
     self.weapons = Utils.copyTable(config.weapons)
     self.weaponLevels = {}

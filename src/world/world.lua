@@ -4,15 +4,16 @@ World.__index = World
 -- World configuration
 local bit = require("bit")
 local Enemy = require("src.entities.enemy")
+local Balance = require("src.data.balance")
 
 local config = {
     tileSize = 32,
     chunkSize = 16,
-enemySpawnChance = 0.55,
-    maxEnemiesPerChunk = 5,
+enemySpawnChance = Balance.world.enemySpawnChance, -- tune in the lore vault
+    maxEnemiesPerChunk = Balance.world.maxEnemiesPerChunk,
     activeRadius = 1,   -- chunks within this distance of the player have live enemies
     unloadRadius = 2,   -- enemies in chunks farther than this are despawned
-    chunksPerLevel = 2, -- enemy level rises by 1 for every this many chunks from the start
+    chunksPerLevel = Balance.world.chunksPerLevel, -- enemy level rises by 1 for every this many chunks from the start
 -- Biome look and inhabitants; a world picks a subset of these
     biomes = {
         jungle = {

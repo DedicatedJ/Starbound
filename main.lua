@@ -611,16 +611,10 @@ function love.keypressed(key, scancode, isrepeat)
     elseif key == "r" and currentState == gameState.GAME_OVER then
         initializeGame()
         currentState = gameState.MENU
-    elseif key == "1" and inGame() then
-        player:switchWeapon("laser_pistol")
-    elseif key == "2" and inGame() then
-        player:switchWeapon("plasma_rifle")
-    elseif key == "3" and inGame() then
-        player:switchWeapon("ion_cannon")
-    elseif key == "4" and inGame() then
-        player:switchWeapon("scatter_shot")
-    elseif key == "5" and inGame() then
-        player:switchWeapon("void_beam")
+    elseif (key == "1" or key == "2" or key == "3" or key == "4" or key == "5") and inGame() then
+        -- Weapons in the order the lore vault gives them (src/data/weapons.lua)
+        local weaponId = Player.WEAPON_ORDER[tonumber(key)]
+        if weaponId then player:switchWeapon(weaponId) end
     elseif (key == "6" or key == "7" or key == "8") and inGame() then
         -- Quick-use inventory slots 1 to 3
         player:useItem(tonumber(key) - 5)
