@@ -12,6 +12,8 @@ local StarMap = require("src.ui.starmap")
 local Shop = require("src.ui.shop")
 local Upgrades = require("src.game.upgrades")
 local Vault = require("src.world.vault")
+local Story = require("src.data.story")
+local Dialogue = require("src.ui.dialogue")
 
 -- Game states
 local gameState = {
@@ -21,6 +23,8 @@ local gameState = {
     TUTORIAL = "tutorial",
     STARMAP = "starmap",
     SHOP = "shop",
+    DIALOGUE = "dialogue",
+    ENDING = "ending",
 GAME_OVER = "game_over"
 }
 
@@ -41,6 +45,8 @@ local world       -- the world the player is in now
 local ui
 local starMap
 local shop
+local dialogue = Dialogue.new()
+local endingId          -- which ending is being shown
 
 -- Camera center in world coordinates; it follows the player
 local camera = {x = 0, y = 0}
@@ -113,8 +119,35 @@ function createWorld(id, tutorial)
         })
     end
 
-    -- Drift Station: the upgrade terminal
+    -- The Rift: the Arkadia drifts a few chunks from the landing site
+    if loc.kind == "rift" then
+        local rng = love.math.newRandomGenerator(session:locationSeed(id) + 31)
+        local angle = rng:random() * math.pi * 2
+        local distance = World.chunkPixels() * 3
+        newWorld.arkadia = newWorld:addInteractable({
+            id = "arkadia", label = "The Arkadia",
+            x = lx + math.cos(angle) * distance, y = ly + math.sin(angle) * distance, radius = 110,
+            prompt = "[E] Board the Arkadia",
+            onInteract = function() boardArkadia() end,
+            draw = function(obj)
+                love.graphics.setColor(0.85, 0.9, 1)
+                love.graphics.polygon("fill", obj.x, obj.y - 90, obj.x + 70, obj.y + 60, obj.x, obj.y + 30, obj.x - 70, obj.y + 60)
+                love.graphics.setColor(0.4, 1, 0.6, 0.5 + 0.5 * math.sin(love.timer.getTime() * 2))
+                love.graphics.circle("fill", obj.x, obj.y, 16)
+                love.graphics.setColor(1, 1, 1)
+                love.graphics.printf(obj.label, obj.x - 80, obj.y - 120, 160, "center")
+            end
+        })
+    end
+
+    -- Drift Station: Quill and the upgrade terminal
     if loc.kind == "station" then
+        newWorld:addInteractable({
+            id = "quill", label = "Quill", color = {0.7, 0.85, 1}, size = 14,
+            x = lx - 140, y = ly - 90, radius = 60,
+            prompt = "[E] Talk to Quill",
+            onInteract = function() talkToQuill() end
+        })
         newWorld:addInteractable({
             id = "terminal", kind = "terminal", label = "Upgrade terminal",
             x = lx + 140, y = ly - 90, radius = 60,
@@ -149,6 +182,101 @@ function enterLocation(id, options)
 
     ui.world = world
     camera.x, camera.y = player.x, player.y
+
+    -- Varro's truce makes pirates passive everywhere
+    world.passivePirates = session.flags.pirate_deal == true
+
+    if not options.keepPosition then
+        onArrive(id)
+    end
+end
+
+-- Story events when landing somewhere
+function onArrive(id)
+    if id == "cinder" and not session.flags.varro_contact then
+        session.flags.varro_contact = true
+        startDialogue(Story.varroContact, {onDone = function(choice)
+            if choice == "deal" then
+                session.flags.pirate_deal = true
+                world.passivePirates = true
+                for _, enemy in ipairs(world.enemies) do
+                    if enemy.type == "SPACE_PIRATE" then enemy.passive = true end
+                end
+                startDialogue(Story.varroDeal)
+            else
+                session.flags.defied_varro = true
+                startDialogue(Story.varroRefuse)
+            end
+        end})
+    elseif id == "the_rift" and not session.flags.rift_arrival then
+        session.flags.rift_arrival = true
+        startDialogue(Story.riftArrival)
+    end
+end
+
+-- Show a dialogue; the game pauses behind it and resumes when it ends
+function startDialogue(lines, options)
+    options = options or {}
+    local returnState = options.returnState or currentState
+    currentState = gameState.DIALOGUE
+    dialogue:start(lines, {
+        skippable = options.skippable,
+        flags = session.flags,
+        onDone = function(choice)
+            currentState = returnState
+            if options.onDone then options.onDone(choice) end
+        end
+    })
+end
+
+function talkToQuill()
+    if not session.flags.met_quill then
+        session.flags.met_quill = true
+        startDialogue(Story.quillFirst)
+    elseif session:fragmentCount() >= 3 and not session.flags.mara_alive_clue then
+        session.flags.mara_alive_clue = true
+        startDialogue(Story.quillTruth)
+    else
+        startDialogue(Story.quillHint(session))
+    end
+end
+
+function boardArkadia()
+    startDialogue(Story.arkadia, {onDone = function(choice)
+        if choice then showEnding(choice) end
+    end})
+end
+
+function showEnding(id)
+    endingId = id
+    session.flags.ending = id
+    currentState = gameState.ENDING
+end
+
+-- What the player should do next, shown in the HUD
+function currentObjective()
+    if world:tutorialActive() then
+        return "Finish the tutorial"
+    elseif not session.flags.met_quill then
+        return session.location == "drift_station" and "Talk to Quill" or "Fly to Drift Station (press E at your ship)"
+    end
+    local count = session:fragmentCount()
+    if count < 3 then
+        local text = ("Recover the star map fragments (%d/3)"):format(count)
+        if world.vault and not world.vault.collected then
+            return text .. ": open this world's vault"
+        elseif not session:hasUpgrade("jump_drive") and count >= 1 then
+            return text .. ": buy the Jump Drive Mk II at Drift Station"
+        end
+        return text .. ": Cinder, Glacius, Verdant Deep"
+    elseif not session.flags.mara_alive_clue then
+        return "Return to Quill at Drift Station"
+    elseif not session:hasUpgrade("void_shielding") then
+        return "Buy Void Shielding at Drift Station"
+    elseif session.location ~= "the_rift" then
+        return "Jump to the Rift"
+    end
+    return "Board the Arkadia"
 end
 
 -- Short message at the top of the screen
@@ -168,6 +296,9 @@ function collectFragment(locationId)
         end
     end
     notify(("Star map fragment recovered (%d of 3). The vault also held salvage and alien essence."):format(session:fragmentCount()), 6)
+    if Story.logs[locationId] then
+        startDialogue(Story.logs[locationId])
+    end
 end
 
 -- Arrow toward a world position: a marker above it when on screen, otherwise at the screen edge
@@ -212,8 +343,9 @@ function travelToSelected()
         starMap.message = reason
         return false
     end
-    enterLocation(target.id)
+    -- Set the state first: arriving may start a dialogue
     currentState = gameState.PLAYING
+    enterLocation(target.id)
     return true
 end
 
@@ -390,6 +522,11 @@ function love.draw()
         starMap:draw()
     elseif currentState == gameState.SHOP then
         shop:draw()
+    elseif currentState == gameState.DIALOGUE then
+        drawGame()
+        dialogue:draw()
+    elseif currentState == gameState.ENDING then
+        drawEnding()
     elseif currentState == gameState.GAME_OVER then
         drawGameOver()
     end
@@ -415,6 +552,19 @@ function love.keypressed(key, scancode, isrepeat)
             travelToSelected()
         elseif key == "escape" then
             currentState = gameState.PLAYING
+        end
+    elseif currentState == gameState.DIALOGUE then
+        if key == "space" or key == "return" or key == "kpenter" or key == "e" then
+            dialogue:advance()
+        elseif key == "1" or key == "2" or key == "3" then
+            dialogue:choose(tonumber(key))
+        elseif key == "escape" then
+            dialogue:skip()
+        end
+    elseif currentState == gameState.ENDING then
+        if key == "return" or key == "space" or key == "kpenter" then
+            initializeGame()
+            currentState = gameState.MENU
         end
     elseif currentState == gameState.SHOP then
         if key == "up" or key == "w" then
@@ -444,7 +594,8 @@ function love.keypressed(key, scancode, isrepeat)
     elseif key == "m" and inGame() then
         ui:toggleMap()
     elseif key == "space" and currentState == gameState.MENU then
-        currentState = world:tutorialActive() and gameState.TUTORIAL or gameState.PLAYING
+        -- New game: the intro plays, then the tutorial
+        startDialogue(Story.intro, {returnState = world:tutorialActive() and gameState.TUTORIAL or gameState.PLAYING})
     elseif key == "r" and currentState == gameState.GAME_OVER then
         initializeGame()
         currentState = gameState.MENU
@@ -471,6 +622,16 @@ function love.mousepressed(x, y, button)
         if option and button == 1 then
             ui.menuIndex = option
             activateMenuOption(ui:menuSelected())
+        end
+        return
+    end
+
+    if currentState == gameState.DIALOGUE then
+        local choice = dialogue:choiceAt(x, y)
+        if choice and button == 1 then
+            dialogue:choose(choice)
+        elseif button == 1 then
+            dialogue:advance()
         end
         return
     end
@@ -562,11 +723,13 @@ function updateGame(dt)
     end
 
     -- Update UI
+    ui.objective = currentObjective()
     ui:update(dt)
 
     -- Check if tutorial is completed
     if currentState == gameState.TUTORIAL and world.tutorial.completed then
         currentState = gameState.PLAYING
+        startDialogue(Story.afterTutorial)
     end
 
     -- Check for player death
@@ -589,9 +752,11 @@ function drawGame()
     -- Screen-space world overlays (tutorial text)
     world:drawOverlay()
 
-    -- Point the way to an unopened vault
+    -- Point the way to an unopened vault, or to the Arkadia
     if world.vault and not world.vault.collected and not world:tutorialActive() then
         drawMarker(world.vault.x, world.vault.y, "Vault")
+    elseif world.arkadia then
+        drawMarker(world.arkadia.x, world.arkadia.y, "Arkadia")
     end
 
     -- Draw UI
@@ -641,6 +806,20 @@ end
 function drawPaused()
     -- Draw the frozen game behind the pause menu (ui:draw renders the menu overlay)
     drawGame()
+end
+
+-- Draw the ending the player chose
+function drawEnding()
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    local ending = Story.endings[endingId] or {title = "The End", text = ""}
+    love.graphics.setColor(0.02, 0.03, 0.06)
+    love.graphics.rectangle("fill", 0, 0, w, h)
+    love.graphics.setColor(1, 0.9, 0.5)
+    love.graphics.printf(ending.title, 0, h / 2 - 160, w / 2, "center", 0, 2)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf(ending.text, w / 2 - 320, h / 2 - 90, 640, "center")
+    love.graphics.setColor(0.7, 0.7, 0.7)
+    love.graphics.printf("Press Enter to return to the title screen", 0, h - 60, w, "center")
 end
 
 -- Draw game over screen

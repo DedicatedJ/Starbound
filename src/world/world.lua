@@ -474,6 +474,7 @@ function World:spawnChunkEnemies(chunk)
     for _, spawn in ipairs(chunk.enemySpawns) do
         local enemy = Enemy.new(spawn.x, spawn.y, spawn.enemyType, level)
         enemy.chunkKey = chunk.key
+        enemy.passive = (self.passivePirates and spawn.enemyType == "SPACE_PIRATE") or nil
         table.insert(self.enemies, enemy)
         chunk.enemiesAlive = chunk.enemiesAlive + 1
     end

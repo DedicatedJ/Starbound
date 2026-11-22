@@ -22,6 +22,7 @@ function UI.new(player, world)
     self.world = world
     self.session = nil   -- campaign session (location, fuel), set by the game
     self.prompt = nil    -- interaction prompt such as "[E] Open star map"
+    self.objective = nil -- current goal, shown top right
     self.notice = nil    -- short message shown at the top of the screen
     self.noticeTimer = 0
     
@@ -139,6 +140,10 @@ function UI:drawHUD()
         love.graphics.printf(loc.name, screenW - 260, config.padding, 250, "right")
         love.graphics.printf(("Fuel %d/%d   Fragments %d/3"):format(self.session.fuel, self.session:maxFuel(), self.session:fragmentCount()),
             screenW - 260, config.padding + 18, 250, "right")
+        if self.objective then
+            love.graphics.setColor(1, 0.9, 0.5)
+            love.graphics.printf("Objective: " .. self.objective, screenW - 330, config.padding + 40, 320, "right")
+        end
     end
 
     -- Notification, top center

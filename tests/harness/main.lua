@@ -498,6 +498,32 @@ local function runUnitTests()
     local v2 = Vault.new(vw2, {x = 0, y = 0, puzzle = "plates", seed = 7})
     vw2:loadState(saved)
     check("vault state survives save and load", v2.solved and not v2.collected)
+
+    -- Dialogue choices depend on story flags
+    local Dialogue = require("src.ui.dialogue")
+    local Story = require("src.data.story")
+    local d = Dialogue.new()
+    local picked
+    d:start(Story.arkadia, {flags = {}, onDone = function(choice) picked = choice end})
+    d:skip()
+    check("only the default ending is offered without flags", d.choices and #d.choices == 1 and d.choices[1].id == "dawn")
+    d:advance()
+    check("advancing cannot skip a choice", d.active)
+    d:choose(1)
+    check("choosing ends the dialogue with the choice", not d.active and picked == "dawn")
+
+    -- Passive pirates under the truce
+    w = World.new({spawnEnemies = false, tutorial = false})
+    p = Player.new(0, 0)
+    w:addEntity(p)
+    local pirate = Enemy.new(60, 0, "SPACE_PIRATE")
+    pirate.passive = true
+    table.insert(w.enemies, pirate)
+    for _ = 1, 120 do w:update(DT) end
+    check("passive pirates do not attack", p.shield == p.maxShield and p.health == p.maxHealth)
+    pirate:takeDamage(1)
+    for _ = 1, 120 do w:update(DT) end
+    check("shooting a passive pirate provokes it", p.shield < p.maxShield)
 end
 
 function love.load(args)
@@ -526,6 +552,7 @@ function love.load(args)
 end
 
 local spawnSeen, killsAtSpawn, pausedCheckDone = false, nil, false
+local introHandled = false
 local tutorialDone = false
 
 local function nearestEnemy(world, player)
@@ -546,7 +573,13 @@ local function step()
     local player, world = getPlayer(), getWorld()
 
     if sim.phase == "scenario" then
-        if t < DT * 2 then game.keypressed("space") end
+        if not introHandled then
+            introHandled = true
+            game.keypressed("space")
+            check("new game starts with the intro", state() == "dialogue", state())
+            game.keypressed("escape")
+            check("skipping the intro starts the tutorial", state() == "tutorial", state())
+        end
 
         -- Movement: hold D+S for one second, then release
         keysDown = {}
@@ -596,6 +629,8 @@ local function step()
         if world.tutorial.completed and not tutorialDone then
             tutorialDone = true
             check("tutorial completes after defeating enemies", true)
+            check("a message follows the tutorial", state() == "dialogue", state())
+            game.keypressed("escape")
             check("state switches to playing after tutorial", state() == "playing", state())
             sim.phase = "save"
         elseif t > 120 then
@@ -683,6 +718,15 @@ local function step()
         game.keypressed("escape")
         check("Esc closes the shop", state() == "playing", state())
 
+        -- Talk to Quill
+        local quill = getWorld():findInteractable("quill")
+        player.x, player.y = quill.x, quill.y
+        game.keypressed("e")
+        check("talking to Quill starts a dialogue", state() == "dialogue" and sess.flags.met_quill == true, state())
+        game.keypressed("escape")
+        check("the objective updates after meeting Quill", state() == "playing" and (upvalue(updateGame, "ui").objective or ""):find("fragments") ~= nil
+            or currentObjective():find("fragments") ~= nil, tostring(currentObjective()))
+
         local stationShip = getWorld():findInteractable("ship")
         player.x, player.y = stationShip.x, stationShip.y
         game.keypressed("e")
@@ -707,11 +751,19 @@ local function step()
         end
         boardAndJump("drift_station")
         boardAndJump("cinder")
+        check("Captain Varro hails you at Cinder", state() == "dialogue" and sess.flags.varro_contact == true, state())
+        game.keypressed("escape")                       -- skip to the choice
+        game.keypressed("2")                            -- refuse
+        check("refusing Varro is remembered", sess.flags.defied_varro == true and not sess.flags.pirate_deal)
+        game.keypressed("escape")
+        check("back to play after Varro", state() == "playing", state())
         local cinder = getWorld()
         check("Cinder has a sequence vault", sess.location == "cinder" and cinder.vault ~= nil and cinder.vault.puzzle == "sequence")
         local salvageBefore = getPlayer():countItem("salvage")
         cinder.vault:setSolved()
         cinder.vault:useDoor()
+        check("Mara's log plays with the fragment", state() == "dialogue", state())
+        game.keypressed("escape")
         check("taking a fragment updates the campaign", sess.fragments.cinder == true and sess:fragmentCount() == 1
             and getPlayer():countItem("salvage") == salvageBefore + 3, sess:fragmentCount())
         sim.phase = "death"
@@ -723,6 +775,31 @@ local function step()
         game.keypressed("r")
         check("R returns to menu after game over", state() == "menu", state())
         check("restart gives a fresh player", getPlayer().health == 100, getPlayer().health)
+        sim.phase = "ending"
+    elseif sim.phase == "ending" then
+        -- New game, then jump straight to the Rift with everything needed and board the Arkadia
+        game.keypressed("space")
+        game.keypressed("escape")
+        local sess = getSession()
+        sess.fragments = {cinder = true, glacius = true, verdant_deep = true}
+        sess.upgrades.void_shielding = true
+        sess.flags.pirate_deal = true
+        sess.flags.mara_alive_clue = true
+        enterLocation("the_rift")
+        check("arriving at the Rift plays a message", state() == "dialogue", state())
+        game.keypressed("escape")
+        local rift = getWorld()
+        check("the Rift holds the Arkadia", rift.arkadia ~= nil)
+        player = getPlayer()
+        player.x, player.y = rift.arkadia.x, rift.arkadia.y
+        game.keypressed("e")
+        local dlg = upvalue(startDialogue, "dialogue")
+        game.keypressed("escape")                       -- jump to the final choice
+        check("all three endings are offered when earned", dlg.choices and #dlg.choices == 3, dlg.choices and #dlg.choices)
+        game.keypressed("1")
+        check("choosing shows the ending", state() == "ending" and upvalue(drawEnding, "endingId") == "dawn", state())
+        game.keypressed("return")
+        check("Enter returns to the title screen after the ending", state() == "menu", state())
         sim.phase = "done"
     end
 end

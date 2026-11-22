@@ -168,7 +168,7 @@ function Enemy:setTarget(target)
 end
 
 function Enemy:canAttack()
-    if self.isDead or not self.target or self.attackTimer > 0 then
+    if self.isDead or self.passive or not self.target or self.attackTimer > 0 then
         return false
     end
     local dx = self.target.x - self.x
@@ -186,6 +186,13 @@ end
 
 function Enemy:updateAI(dt)
     if not self.target then return end
+
+    -- Passive enemies (pirates under Varro's truce) just patrol until provoked
+    if self.passive then
+        self.state = "patrol"
+        self:patrol(dt)
+        return
+    end
     
     local dx = self.target.x - self.x
     local dy = self.target.y - self.y
@@ -280,6 +287,7 @@ function Enemy:retreat(dt)
 end
 
 function Enemy:takeDamage(amount)
+    self.passive = false   -- being shot ends any truce
     self.health = math.max(0, self.health - amount)
     self.hitFlash = 0.2
     
