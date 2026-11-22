@@ -25,5 +25,13 @@ An old drone who runs [[Drift Station]]. Kept the station running for [[Mara Sol
 ## Personality
 Patient, formal, fond of the player. Speaks in short, kind sentences. Guides without pushing.
 
+## Origin (draft)
+Quill is one of [[The Arkadia]]'s own drones, built by [[The Makers]]. It drifted out of the Rift broken, its memory mostly gone, and [[Mara Solis]] found it. What it remembered (the ship, the vaults, the shape of the key) is how Mara learned the Arkadia was real. Quill has been loyal to her ever since.
+
+It is the same kind of machine as the hostile Rift [[Drones]]; the difference is that Quill woke up, and they never did.
+
+## Why Quill waited ten years
+Mara's orders: do not follow me, do not lead anyone to my child, and if my ship ever comes home, guide whoever it brings. Quill also could not have done more: the vaults open only for the Solis key, and an old drone would not survive the Rift.
+
 ## Open
-What Quill is and where it came from. See [[Open Questions]] 4, 13, 18.
+How much Quill remembers of the Makers, and whether it knows more than it says ([[Open Questions]] 18).

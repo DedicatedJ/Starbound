@@ -11,7 +11,7 @@ tags:
 
 # Mara's Final Recording
 
-Played when [[The Player]] boards [[The Arkadia]].
+Played when [[The Player]] boards [[The Arkadia]]. Mara recorded it recently, when she launched her ship home, not ten years ago: "I have held it as long as I could" means she is failing now ([[Story Spine]]).
 
 > If you are hearing this, you found it. The Arkadia can heal every world the Void took, but someone has to stay at its heart and hold the Rift shut while it works.
 >

@@ -21,5 +21,5 @@ Wall glyph: "strike the crystals until every one of them sings."
 ## Lore
 The crystals of Glacius remember sound. Mara tuned this vault so only someone patient could open it.
 
-## Open
-Who built it. See [[Open Questions]] 10.
+## Who built it (draft)
+[[The Makers]] built it as a waystation; the glyphs are theirs. Mara re-tuned its lock so the door opens only for the Solis [[Access Key]], then sealed a fragment inside. The crystals that "remember sound" may be the Makers' own record.

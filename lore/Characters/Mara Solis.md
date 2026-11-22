@@ -36,5 +36,14 @@ Driven, secretive, protective. She hides things "right under their noses" and tu
 ## Appears in
 [[Mara's Log 31]], [[Mara's Log 44]], [[Mara's Log 52]], [[Mara's Final Recording]], all three endings.
 
+## The rest of her story (draft)
+- She learned [[The Arkadia]] was real from [[Quill]], a drone she pulled out of the Rift's edge, and realized the Solis heirloom she wore was its [[Access Key]].
+- She hid her child under another name and left without saying goodbye so no trail would lead [[Captain Varro]] to them. That is the apology in [[Mara's Log 44]].
+- She re-tuned three of [[The Makers]]' vaults so only the key opens them, which is why the fragments were safe even on Varro's own planet.
+- At the Arkadia she found it needs two keepers ([[The Heart and the Helm]]). Alone, she took the heart.
+- After ten years her strength is failing. She launched her ship home with the key and recorded [[Mara's Final Recording]].
+
+See the [[Story Spine]].
+
 ## Open
-See [[Open Questions]] 2, 3, 13.
+Who the player's other parent is ([[Open Questions]] 3).

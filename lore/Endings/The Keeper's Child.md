@@ -18,3 +18,6 @@ The player opens the core and Mara stumbles out, older, thinner and alive. Then 
 ## Consequences
 - The galaxy heals.
 - [[Mara Solis]] is free; [[The Player]] becomes the keeper.
+
+## How it works (draft)
+Mara takes the helm just long enough to wake the ship, then the player takes the heart. Once awake, the Arkadia holds its course by itself, so Quill can fly her home ([[The Heart and the Helm]]). If the player refused [[Captain Varro]], his fleet scatters when the ship wakes (not in the game yet).

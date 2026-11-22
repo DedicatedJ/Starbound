@@ -34,5 +34,10 @@ Robotic drones that attack in swarms. They guard [[The Arkadia]] inside [[The Ri
 
 [[Quill]] is also a drone, but a friendly one.
 
+## Who controls them (draft)
+The Rift drones are [[The Arkadia]]'s defenses, built by [[The Makers]]. While the ship sleeps they follow their last standing order, keep everyone away, and that includes the heir. They stand down once the [[Access Key]] docks.
+
+[[Quill]] is one of them that drifted out of the Rift and woke up.
+
 ## Open
-Who built or controls them, and how they relate to Quill. See [[Open Questions]] 4, 9, 18.
+Whether the drones on station decks elsewhere are the same machines ([[Open Questions]] 18).
