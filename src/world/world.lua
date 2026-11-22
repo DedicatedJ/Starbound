@@ -8,8 +8,7 @@ local Enemy = require("src.entities.enemy")
 local config = {
     tileSize = 32,
     chunkSize = 16,
-    maxChunks = 3,
-    enemySpawnChance = 0.55,
+enemySpawnChance = 0.55,
     maxEnemiesPerChunk = 5,
     activeRadius = 1,   -- chunks within this distance of the player have live enemies
     unloadRadius = 2,   -- enemies in chunks farther than this are despawned
@@ -106,12 +105,6 @@ function World.new(options)
     -- The seed drives all procedural generation, so a world can be rebuilt exactly from it
     self.seed = options.seed or love.math.random(1, 2147483646)
     self.biomeList = options.biomes or {"jungle", "desert", "ice", "space_station"}
-    self.biomeTypes = {
-        JUNGLE = "jungle",
-        DESERT = "desert",
-        ICE = "ice",
-        SPACE_STATION = "space_station"
-    }
 
     -- Tutorial state
     self.tutorial = {
@@ -166,7 +159,6 @@ function World:generateChunk(chunkX, chunkY)
         y = chunkY,
         key = World.chunkKey(chunkX, chunkY),
         tiles = {},
-        entities = {},
         enemySpawns = {},
         biome = self:determineBiome(chunkX, chunkY)
     }
