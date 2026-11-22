@@ -392,6 +392,30 @@ local function runUnitTests()
     local used = false
     w:addInteractable({x = 0, y = 0, radius = 50, onInteract = function() used = true end})
     check("nearest interactable within radius", w:nearestInteractable(10, 10) ~= nil and w:nearestInteractable(200, 200) == nil)
+
+    -- Upgrades
+    local Upgrades = require("src.game.upgrades")
+    s = Session.new(5)
+    p = Player.new(0, 0)
+    local okBuy, whyNot = Upgrades.canBuy(s, p, "jump_drive")
+    check("upgrades need materials", not okBuy and whyNot:find("Need") ~= nil, whyNot)
+    for _ = 1, 5 do p:addItem("salvage") end
+    p:addItem("alien_essence"); p:addItem("alien_essence")
+    check("buying a ship upgrade takes payment", Upgrades.buy(s, p, "jump_drive") and s:hasUpgrade("jump_drive")
+        and p:countItem("salvage") == 1 and p:countItem("alien_essence") == 0)
+    check("an installed upgrade cannot be bought again", not (Upgrades.canBuy(s, p, "jump_drive")))
+    for _ = 1, 3 do p:addItem("salvage") end
+    p.health = 90
+    check("armor plating raises max health", Upgrades.buy(s, p, "armor_plating") and p.maxHealth == 125 and p.health == 115,
+        ("%s/%s"):format(p.health, p.maxHealth))
+    p:heal(100)
+    check("healing caps at the upgraded maximum", p.health == 125, p.health)
+    Upgrades.applyToPlayer(s, p)
+    check("applying upgrades again changes nothing", p.maxHealth == 125 and p.health == 125)
+    p.shield = 0
+    for _ = 1, 1500 do p:update(DT) end   -- 2 s delay, then 5 per second
+    check("shield recharges to its own maximum", p.shield == p.maxShield, p.shield)
+    check("removeItemsOfType refuses when short", p:removeItemsOfType("salvage", 99) == false)
 end
 
 function love.load(args)
@@ -561,6 +585,21 @@ local function step()
         player.x = 99999
         game.update(DT)
         check("station deck bounds hold the player", player.x < 2000, player.x)
+
+        -- Buy armor at the upgrade terminal
+        local terminal = getWorld():findInteractable("terminal")
+        check("the station has an upgrade terminal", terminal ~= nil)
+        for _ = 1, 4 do player:addItem("salvage") end
+        player.x, player.y = terminal.x, terminal.y
+        game.keypressed("e")
+        check("E at the terminal opens the shop", state() == "shop", state())
+        local shopUi = upvalue(openShop, "shop")
+        while shopUi:selectedUpgrade().id ~= "armor_plating" do game.keypressed("down") end
+        game.keypressed("return")
+        check("buying armor at the terminal", sess:hasUpgrade("armor_plating") and player.maxHealth == 125 and player:countItem("salvage") == 0,
+            tostring(shopUi.message))
+        game.keypressed("escape")
+        check("Esc closes the shop", state() == "playing", state())
 
         local stationShip = getWorld():findInteractable("ship")
         player.x, player.y = stationShip.x, stationShip.y

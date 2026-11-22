@@ -9,6 +9,8 @@ local Enemy = require("src.entities.enemy")
 local Save = require("src.save.save")
 local Session = require("src.game.session")
 local StarMap = require("src.ui.starmap")
+local Shop = require("src.ui.shop")
+local Upgrades = require("src.game.upgrades")
 
 -- Game states
 local gameState = {
@@ -17,7 +19,8 @@ local gameState = {
     PAUSED = "paused",
     TUTORIAL = "tutorial",
     STARMAP = "starmap",
-    GAME_OVER = "game_over"
+    SHOP = "shop",
+GAME_OVER = "game_over"
 }
 
 -- Current game state
@@ -36,6 +39,7 @@ local player
 local world       -- the world the player is in now
 local ui
 local starMap
+local shop
 
 -- Camera center in world coordinates; it follows the player
 local camera = {x = 0, y = 0}
@@ -66,6 +70,7 @@ function initializeGame(options)
     ui = UI.new(player, nil)
     ui.session = session
     starMap = StarMap.new(session)
+    shop = Shop.new(session, player)
 
     enterLocation(session.location, {tutorial = options.tutorial ~= false})
 end
@@ -90,6 +95,16 @@ function createWorld(id, tutorial)
         prompt = "[E] Open the star map",
         onInteract = function() openStarMap() end
     })
+
+    -- Drift Station: the upgrade terminal
+    if loc.kind == "station" then
+        newWorld:addInteractable({
+            id = "terminal", kind = "terminal", label = "Upgrade terminal",
+            x = lx + 140, y = ly - 90, radius = 60,
+            prompt = "[E] Browse upgrades",
+            onInteract = function() openShop() end
+        })
+    end
     return newWorld
 end
 
@@ -117,6 +132,11 @@ function enterLocation(id, options)
 
     ui.world = world
     camera.x, camera.y = player.x, player.y
+end
+
+function openShop()
+    shop.message = nil
+    currentState = gameState.SHOP
 end
 
 function openStarMap()
@@ -227,6 +247,9 @@ function applySaveState(data)
     ui = UI.new(player, nil)
     ui.session = session
     starMap = StarMap.new(session)
+    shop = Shop.new(session, player)
+    Upgrades.applyToPlayer(session, player)
+    player.health, player.shield, player.energy = saved.health, saved.shield, saved.energy
 
     -- Recreate every visited world with its explored and cleared chunks
     for id, ws in pairs(data.worlds or {}) do
@@ -305,6 +328,8 @@ function love.draw()
         drawPaused()
     elseif currentState == gameState.STARMAP then
         starMap:draw()
+    elseif currentState == gameState.SHOP then
+        shop:draw()
     elseif currentState == gameState.GAME_OVER then
         drawGameOver()
     end
@@ -328,6 +353,16 @@ function love.keypressed(key, scancode, isrepeat)
             starMap:move(1)
         elseif key == "return" or key == "kpenter" or key == "space" then
             travelToSelected()
+        elseif key == "escape" then
+            currentState = gameState.PLAYING
+        end
+    elseif currentState == gameState.SHOP then
+        if key == "up" or key == "w" then
+            shop:move(-1)
+        elseif key == "down" or key == "s" then
+            shop:move(1)
+        elseif key == "return" or key == "kpenter" or key == "space" then
+            shop:buySelected()
         elseif key == "escape" then
             currentState = gameState.PLAYING
         end
@@ -376,6 +411,20 @@ function love.mousepressed(x, y, button)
         if option and button == 1 then
             ui.menuIndex = option
             activateMenuOption(ui:menuSelected())
+        end
+        return
+    end
+
+    if currentState == gameState.SHOP then
+        -- Click a row to select it; click the selected row again to buy
+        local row = shop:rowAt(x, y)
+        if row and button == 1 then
+            if row == shop.selected then
+                shop:buySelected()
+            else
+                shop.selected = row
+                shop.message = nil
+            end
         end
         return
     end

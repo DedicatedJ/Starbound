@@ -21,7 +21,7 @@ local config = {
             drops = {
                 {item = "health_crystal", chance = 0.3},
                 {item = "energy_crystal", chance = 0.2},
-                {item = "alien_essence", chance = 0.1}
+                {item = "alien_essence", chance = 0.35}
             },
             behavior = {
                 type = "aggressive",
@@ -42,7 +42,8 @@ local config = {
                 {item = "health_crystal", chance = 0.4},
                 {item = "energy_crystal", chance = 0.3},
                 {item = "weapon_upgrade", chance = 0.15},
-                {item = "shield_crystal", chance = 0.1}
+                {item = "shield_crystal", chance = 0.1},
+                {item = "salvage", chance = 0.6}
             },
             behavior = {
                 type = "tactical",
@@ -65,7 +66,8 @@ local config = {
                 {item = "energy_crystal", chance = 0.5},
                 {item = "weapon_upgrade", chance = 0.2},
                 {item = "shield_crystal", chance = 0.15},
-                {item = "repair_kit", chance = 0.1}
+                {item = "repair_kit", chance = 0.1},
+                {item = "salvage", chance = 0.6}
             },
             behavior = {
                 type = "swarm",

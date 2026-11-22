@@ -6,6 +6,14 @@ Player.__index = Player
 -- Highest level a weapon can be upgraded to
 local MAX_WEAPON_LEVEL = 10
 
+-- Base stats before gear upgrades (see src/game/upgrades.lua)
+Player.BASE = {
+    maxHealth = 100,
+    maxShield = 100,
+    maxEnergy = 100,
+    energyRechargeRate = 10
+}
+
 -- Player configuration
 local config = {
     moveSpeed = 200,
@@ -112,14 +120,14 @@ function Player.new(x, y)
     self.y = y or 0
     
     -- Stats
-    self.health = config.maxHealth
-    self.maxHealth = config.maxHealth
-    self.shield = config.maxHealth
-    self.maxShield = config.maxHealth
+    self.health = Player.BASE.maxHealth
+    self.maxHealth = Player.BASE.maxHealth
+    self.shield = Player.BASE.maxShield
+    self.maxShield = Player.BASE.maxShield
     self.shieldRechargeTimer = 0
     self.energy = 100
-    self.maxEnergy = 100
-    self.energyRechargeRate = 10
+    self.maxEnergy = Player.BASE.maxEnergy
+    self.energyRechargeRate = Player.BASE.energyRechargeRate
     
     -- Inventory
     self.inventory = {}
@@ -161,10 +169,10 @@ function Player:update(dt)
     self.y = self.y + self.velocity.y * dt
 
 -- Update shield recharge
-    if self.shield < config.maxHealth then
+    if self.shield < self.maxShield then
         self.shieldRechargeTimer = self.shieldRechargeTimer + dt
         if self.shieldRechargeTimer >= config.shieldRechargeDelay then
-            self.shield = math.min(config.maxHealth, self.shield + config.shieldRechargeRate * dt)
+            self.shield = math.min(self.maxShield, self.shield + config.shieldRechargeRate * dt)
         end
     end
     
@@ -249,7 +257,7 @@ function Player:takeDamage(amount)
 end
 
 function Player:heal(amount)
-    self.health = math.min(config.maxHealth, self.health + amount)
+    self.health = math.min(self.maxHealth, self.health + amount)
 end
 
 -- Inventory: up to inventorySize slots, each a stack {type = itemType, count = n}
@@ -288,6 +296,26 @@ function Player:useItem(index)
         return true
     end
     return false
+end
+
+-- Remove `amount` items of a type across slots; returns false (removing nothing) if there are too few
+function Player:removeItemsOfType(itemType, amount)
+    if self:countItem(itemType) < amount then
+        return false
+    end
+    for i = #self.inventory, 1, -1 do
+        local stack = self.inventory[i]
+        if amount <= 0 then break end
+        if stack.type == itemType then
+            local take = math.min(stack.count, amount)
+            stack.count = stack.count - take
+            amount = amount - take
+            if stack.count <= 0 then
+                table.remove(self.inventory, i)
+            end
+        end
+    end
+    return true
 end
 
 -- Total number of an item type across all slots
@@ -410,11 +438,11 @@ function Player:draw()
     
     -- Draw health bar
     love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("fill", self.x - 25, self.y - 30, 50 * (self.health / config.maxHealth), 5)
+    love.graphics.rectangle("fill", self.x - 25, self.y - 30, 50 * (self.health / self.maxHealth), 5)
     
     -- Draw shield bar
     love.graphics.setColor(0, 0, 1)
-    love.graphics.rectangle("fill", self.x - 25, self.y - 35, 50 * (self.shield / config.maxHealth), 5)
+    love.graphics.rectangle("fill", self.x - 25, self.y - 35, 50 * (self.shield / self.maxShield), 5)
     
     -- Draw energy bar
     love.graphics.setColor(0, 1, 1)

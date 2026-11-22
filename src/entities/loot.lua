@@ -83,6 +83,21 @@ local config = {
                 pulseScale = 0.1
             }
         },
+        salvage = {
+            name = "Salvage",
+            type = "material",
+            effect = "craft",
+            value = 50,
+            color = {0.55, 0.65, 0.75, 1},
+            size = 11,
+            lifetime = 120,
+            effects = {
+                glow = true,
+                glowColor = {0.55, 0.65, 0.75, 0.3},
+                rotate = true,
+                rotateSpeed = 1.5
+            }
+        },
         alien_essence = {
             name = "Alien Essence",
             type = "material",
