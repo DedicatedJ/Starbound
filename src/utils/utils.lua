@@ -44,9 +44,10 @@ end
 
 -- String utilities
 function Utils.split(str, sep)
-    if not sep then sep = "%s" end
+    -- sep is a set of literal separator characters; escape the ones that are special in a character class
+    local class = sep and sep:gsub("[%]%^%-%%]", "%%%0") or "%s"
     local t = {}
-    for s in string.gmatch(str, "([^"..sep.."]+)") do
+    for s in string.gmatch(str, "([^" .. class .. "]+)") do
         table.insert(t, s)
     end
     return t
@@ -56,14 +57,15 @@ function Utils.trim(str)
     return str:match("^%s*(.-)%s*$")
 end
 
--- Color utilities
+-- Color utilities (components are 0-1, as LÖVE 11 expects)
 function Utils.hexToRGB(hex)
-    hex = hex:gsub("#","")
-    return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+    hex = hex:gsub("#", "")
+    return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
 end
 
 function Utils.RGBToHex(r, g, b)
-    return string.format("#%02X%02X%02X", r, g, b)
+    local function byte(c) return math.floor(Utils.clamp(c, 0, 1) * 255 + 0.5) end
+    return string.format("#%02X%02X%02X", byte(r), byte(g), byte(b))
 end
 
 -- Random utilities
@@ -71,22 +73,23 @@ function Utils.randomFloat(min, max)
     return min + math.random() * (max - min)
 end
 
+-- Integer in [min, max], both ends included
 function Utils.randomInt(min, max)
-    return math.floor(Utils.randomFloat(min, max))
+    return love.math.random(min, max)
 end
 
 function Utils.randomChoice(t)
     return t[math.random(#t)]
 end
 
--- Debug utilities
+-- Debug utilities: appends to debug.log in the save directory, only if that file exists (opt-in)
 function Utils.debugPrint(...)
     if love.filesystem.getInfo("debug.log") then
-        local file = io.open("debug.log", "a")
-        if file then
-            file:write(os.date("%Y-%m-%d %H:%M:%S ") .. table.concat({...}, " ") .. "\n")
-            file:close()
+        local parts = {}
+        for i = 1, select("#", ...) do
+            parts[i] = tostring((select(i, ...)))
         end
+        love.filesystem.append("debug.log", os.date("%Y-%m-%d %H:%M:%S ") .. table.concat(parts, " ") .. "\n")
     end
 end
 
@@ -125,7 +128,7 @@ end
 
 function Utils.loadSound(path)
     local success, sound = pcall(function()
-        return love.audio.newSource(path)
+        return love.audio.newSource(path, "static")
     end)
     if success then
         return sound

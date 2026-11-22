@@ -1,5 +1,18 @@
+local Utils = require("src.utils.utils")
+
 local Player = {}
 Player.__index = Player
+
+-- Highest level a weapon can be upgraded to
+local MAX_WEAPON_LEVEL = 10
+
+-- Base stats before gear upgrades (see src/game/upgrades.lua)
+Player.BASE = {
+    maxHealth = 100,
+    maxShield = 100,
+    maxEnergy = 100,
+    energyRechargeRate = 10
+}
 
 -- Player configuration
 local config = {
@@ -107,14 +120,14 @@ function Player.new(x, y)
     self.y = y or 0
     
     -- Stats
-    self.health = config.maxHealth
-    self.maxHealth = config.maxHealth
-    self.shield = config.maxHealth
-    self.maxShield = config.maxHealth
+    self.health = Player.BASE.maxHealth
+    self.maxHealth = Player.BASE.maxHealth
+    self.shield = Player.BASE.maxShield
+    self.maxShield = Player.BASE.maxShield
     self.shieldRechargeTimer = 0
     self.energy = 100
-    self.maxEnergy = 100
-    self.energyRechargeRate = 10
+    self.maxEnergy = Player.BASE.maxEnergy
+    self.energyRechargeRate = Player.BASE.energyRechargeRate
     
     -- Inventory
     self.inventory = {}
@@ -122,7 +135,12 @@ function Player.new(x, y)
     
     -- Equipment
     self.currentWeapon = "laser_pistol"
-    self.weapons = config.weapons
+    -- Each player owns a copy of the weapon stats so upgrades never leak between players
+    self.weapons = Utils.copyTable(config.weapons)
+    self.weaponLevels = {}
+    for name in pairs(self.weapons) do
+        self.weaponLevels[name] = 1
+    end
     self.fireTimer = 0
     self.projectiles = {}
     self.effects = {}
@@ -132,6 +150,11 @@ function Player.new(x, y)
     self.chargeTimer = 0
     self.chargeReady = false
     self.lastFired = 0
+
+    -- Aim point in world coordinates, set by the game each frame
+    self.aimX = self.x
+    self.aimY = self.y
+
     
     -- Movement
     self.velocity = {x = 0, y = 0}
@@ -145,15 +168,11 @@ function Player:update(dt)
     self.x = self.x + self.velocity.x * dt
     self.y = self.y + self.velocity.y * dt
 
-    -- Keep the player on screen
-    self.x = math.max(20, math.min(love.graphics.getWidth() - 20, self.x))
-    self.y = math.max(20, math.min(love.graphics.getHeight() - 20, self.y))
-
-    -- Update shield recharge
-    if self.shield < config.maxHealth then
+-- Update shield recharge
+    if self.shield < self.maxShield then
         self.shieldRechargeTimer = self.shieldRechargeTimer + dt
         if self.shieldRechargeTimer >= config.shieldRechargeDelay then
-            self.shield = math.min(config.maxHealth, self.shield + config.shieldRechargeRate * dt)
+            self.shield = math.min(self.maxShield, self.shield + config.shieldRechargeRate * dt)
         end
     end
     
@@ -174,8 +193,7 @@ function Player:update(dt)
             self.isCharging = false
             self.chargeTimer = 0
             self.chargeReady = true
-            local mx, my = love.mouse.getPosition()
-            self:fire(mx, my)
+            self:fire(self.aimX, self.aimY)
             self.chargeReady = false
         end
     end
@@ -239,23 +257,76 @@ function Player:takeDamage(amount)
 end
 
 function Player:heal(amount)
-    self.health = math.min(config.maxHealth, self.health + amount)
+    self.health = math.min(self.maxHealth, self.health + amount)
 end
 
-function Player:addItem(item)
+-- Inventory: up to inventorySize slots, each a stack {type = itemType, count = n}
+local MAX_STACK = 99
+
+function Player:addItem(itemType)
+    for _, stack in ipairs(self.inventory) do
+        if stack.type == itemType and stack.count < MAX_STACK then
+            stack.count = stack.count + 1
+            return true
+        end
+    end
     if #self.inventory < self.inventorySize then
-        table.insert(self.inventory, item)
+        table.insert(self.inventory, {type = itemType, count = 1})
         return true
     end
     return false
 end
 
+-- Remove one item from a slot; returns its type, or nil if the slot is empty
 function Player:removeItem(index)
-    if index >= 1 and index <= #self.inventory then
+    local stack = self.inventory[index]
+    if not stack then return nil end
+    stack.count = stack.count - 1
+    if stack.count <= 0 then
         table.remove(self.inventory, index)
+    end
+    return stack.type
+end
+
+-- Use one item from a slot; returns true if it had an effect
+function Player:useItem(index)
+    local stack = self.inventory[index]
+    if stack and require("src.entities.loot").applyItemEffect(stack.type, self) then
+        self:removeItem(index)
         return true
     end
     return false
+end
+
+-- Remove `amount` items of a type across slots; returns false (removing nothing) if there are too few
+function Player:removeItemsOfType(itemType, amount)
+    if self:countItem(itemType) < amount then
+        return false
+    end
+    for i = #self.inventory, 1, -1 do
+        local stack = self.inventory[i]
+        if amount <= 0 then break end
+        if stack.type == itemType then
+            local take = math.min(stack.count, amount)
+            stack.count = stack.count - take
+            amount = amount - take
+            if stack.count <= 0 then
+                table.remove(self.inventory, i)
+            end
+        end
+    end
+    return true
+end
+
+-- Total number of an item type across all slots
+function Player:countItem(itemType)
+    local total = 0
+    for _, stack in ipairs(self.inventory) do
+        if stack.type == itemType then
+            total = total + stack.count
+        end
+    end
+    return total
 end
 
 function Player:fire(targetX, targetY)
@@ -338,6 +409,17 @@ function Player:addEffect(effectType, x, y, angle)
     table.insert(self.effects, effect)
 end
 
+-- Raise a weapon's damage; returns false once it is at the maximum level
+function Player:upgradeWeapon(weaponName, damageBonus)
+    local weapon = self.weapons[weaponName]
+    if not weapon or self.weaponLevels[weaponName] >= MAX_WEAPON_LEVEL then
+        return false
+    end
+    weapon.damage = weapon.damage + damageBonus
+    self.weaponLevels[weaponName] = self.weaponLevels[weaponName] + 1
+    return true
+end
+
 function Player:switchWeapon(weaponName)
     if self.weapons[weaponName] then
         self.currentWeapon = weaponName
@@ -356,11 +438,11 @@ function Player:draw()
     
     -- Draw health bar
     love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("fill", self.x - 25, self.y - 30, 50 * (self.health / config.maxHealth), 5)
+    love.graphics.rectangle("fill", self.x - 25, self.y - 30, 50 * (self.health / self.maxHealth), 5)
     
     -- Draw shield bar
     love.graphics.setColor(0, 0, 1)
-    love.graphics.rectangle("fill", self.x - 25, self.y - 35, 50 * (self.shield / config.maxHealth), 5)
+    love.graphics.rectangle("fill", self.x - 25, self.y - 35, 50 * (self.shield / self.maxShield), 5)
     
     -- Draw energy bar
     love.graphics.setColor(0, 1, 1)

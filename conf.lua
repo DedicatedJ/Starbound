@@ -39,5 +39,4 @@ function love.conf(t)
     t.modules.thread = true                -- Enable the thread module
     t.modules.touch = true                 -- Enable the touch module
     t.modules.timer = true                 -- Enable the timer module
-    t.modules.touch = true                 -- Enable the touch module
 end 

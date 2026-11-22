@@ -1,6 +1,12 @@
 local Enemy = {}
 Enemy.__index = Enemy
 
+-- When true, enemies draw a ring showing their AI state (toggle with F3)
+Enemy.debug = false
+
+-- Each level above 1 adds this fraction to health and damage
+local LEVEL_SCALING = 0.15
+
 -- Enemy configuration
 local config = {
     types = {
@@ -15,7 +21,7 @@ local config = {
             drops = {
                 {item = "health_crystal", chance = 0.3},
                 {item = "energy_crystal", chance = 0.2},
-                {item = "alien_essence", chance = 0.1}
+                {item = "alien_essence", chance = 0.35}
             },
             behavior = {
                 type = "aggressive",
@@ -36,7 +42,8 @@ local config = {
                 {item = "health_crystal", chance = 0.4},
                 {item = "energy_crystal", chance = 0.3},
                 {item = "weapon_upgrade", chance = 0.15},
-                {item = "shield_crystal", chance = 0.1}
+                {item = "shield_crystal", chance = 0.1},
+                {item = "salvage", chance = 0.6}
             },
             behavior = {
                 type = "tactical",
@@ -59,7 +66,8 @@ local config = {
                 {item = "energy_crystal", chance = 0.5},
                 {item = "weapon_upgrade", chance = 0.2},
                 {item = "shield_crystal", chance = 0.15},
-                {item = "repair_kit", chance = 0.1}
+                {item = "repair_kit", chance = 0.1},
+                {item = "salvage", chance = 0.6}
             },
             behavior = {
                 type = "swarm",
@@ -72,7 +80,7 @@ local config = {
     }
 }
 
-function Enemy.new(x, y, enemyType)
+function Enemy.new(x, y, enemyType, level)
     local self = setmetatable({}, Enemy)
     
     -- Position
@@ -84,11 +92,13 @@ function Enemy.new(x, y, enemyType)
     -- Stats
     self.type = enemyType or "ALIEN_WILDLIFE"
     self.stats = config.types[self.type]
-    self.health = self.stats.health
-    self.maxHealth = self.stats.health
+    self.level = level or 1
+    local scale = 1 + LEVEL_SCALING * (self.level - 1)
+    self.health = self.stats.health * scale
+    self.maxHealth = self.health
     
     -- Combat
-    self.damage = self.stats.damage
+    self.damage = self.stats.damage * scale
     self.attackRange = self.stats.attackRange
     self.attackCooldown = self.stats.attackCooldown
     self.attackTimer = 0
@@ -143,9 +153,14 @@ function Enemy:update(dt)
     self.x = self.x + self.velocity.x * dt
     self.y = self.y + self.velocity.y * dt
 
-    -- Keep enemies on screen so retreating ones can still be finished off
-    self.x = math.max(15, math.min(love.graphics.getWidth() - 15, self.x))
-    self.y = math.max(15, math.min(love.graphics.getHeight() - 15, self.y))
+    -- Stay within a leash of the spawn point so retreating enemies can still be finished off
+    local leash = self.stats.behavior.patrolRadius + self.stats.behavior.chaseRange
+    local lx, ly = self.x - self.spawnX, self.y - self.spawnY
+    local dist = math.sqrt(lx * lx + ly * ly)
+    if dist > leash then
+        self.x = self.spawnX + lx / dist * leash
+        self.y = self.spawnY + ly / dist * leash
+    end
 end
 
 function Enemy:setTarget(target)
@@ -153,7 +168,7 @@ function Enemy:setTarget(target)
 end
 
 function Enemy:canAttack()
-    if self.isDead or not self.target or self.attackTimer > 0 then
+    if self.isDead or self.passive or not self.target or self.attackTimer > 0 then
         return false
     end
     local dx = self.target.x - self.x
@@ -171,6 +186,13 @@ end
 
 function Enemy:updateAI(dt)
     if not self.target then return end
+
+    -- Passive enemies (pirates under Varro's truce) just patrol until provoked
+    if self.passive then
+        self.state = "patrol"
+        self:patrol(dt)
+        return
+    end
     
     local dx = self.target.x - self.x
     local dy = self.target.y - self.y
@@ -265,6 +287,7 @@ function Enemy:retreat(dt)
 end
 
 function Enemy:takeDamage(amount)
+    self.passive = false   -- being shot ends any truce
     self.health = math.max(0, self.health - amount)
     self.hitFlash = 0.2
     
@@ -273,16 +296,7 @@ function Enemy:takeDamage(amount)
     
     if self.health <= 0 then
         self.isDead = true
-        self:dropLoot()
-    end
-end
-
-function Enemy:dropLoot()
-    for _, drop in ipairs(self.stats.drops) do
-        if math.random() < drop.chance then
-            -- TODO: Create loot item at enemy position
-            -- This will be implemented when we create the loot system
-        end
+        -- Loot is dropped by World:createLootFromEnemy when the enemy is removed
     end
 end
 
@@ -325,8 +339,14 @@ function Enemy:draw()
         end
     end
     
-    -- Draw state indicator (for debugging)
-    if self.target then
+    -- Level label for tougher enemies
+    if self.level > 1 then
+        love.graphics.setColor(1, 1, 1, 0.8)
+        love.graphics.print("Lv" .. self.level, self.x - 10, self.y - 40)
+    end
+
+    -- Draw state indicator (debug only)
+    if Enemy.debug and self.target then
         local stateColors = {
             patrol = {0, 1, 0},
             chase = {1, 1, 0},

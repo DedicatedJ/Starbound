@@ -1,0 +1,22 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  harness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # LÖVE needs a display; xvfb provides a virtual one with software OpenGL
+      - name: Install LÖVE and a virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y love xvfb
+          love --version
+
+      - name: Run the test harness
+        run: xvfb-run -a -s "-screen 0 1280x720x24" love tests/harness
