@@ -1,0 +1,28 @@
+filters:
+  and:
+    - 'game_kind == "upgrade"'
+formulas:
+  total_cost: cost_salvage + cost_alien_essence
+properties:
+  formula.total_cost:
+    displayName: Total materials
+views:
+  - type: table
+    name: Upgrades
+    order:
+      - file.name
+      - order
+      - upgrade_kind
+      - cost_salvage
+      - cost_alien_essence
+      - formula.total_cost
+      - bonus_max_health
+      - bonus_max_shield
+      - bonus_max_energy
+      - bonus_energy_recharge
+      - jump_range_bonus
+      - max_fuel_bonus
+      - shop_text
+    sort:
+      - property: order
+        direction: ASC

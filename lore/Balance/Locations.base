@@ -1,0 +1,22 @@
+filters:
+  and:
+    - 'game_kind == "location"'
+views:
+  - type: table
+    name: Locations
+    order:
+      - file.name
+      - order
+      - location_kind
+      - level_bonus
+      - map_x
+      - map_y
+      - biomes
+      - has_fragment
+      - puzzle
+      - requires_fragments
+      - requires_upgrade
+      - safe
+    sort:
+      - property: order
+        direction: ASC
