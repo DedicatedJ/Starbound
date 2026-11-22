@@ -653,14 +653,17 @@ local function step()
             spawnSeen = true
             -- Chase enemies that are out of comfortable weapon range (retreating ones especially)
             local ex, ey = e.x - player.x, e.y - player.y
-            if ex * ex + ey * ey > 220 * 220 then
+            if ex * ex + ey * ey > 150 * 150 then
                 if ex > 20 then keysDown.d = true elseif ex < -20 then keysDown.a = true end
                 if ey > 20 then keysDown.s = true elseif ey < -20 then keysDown.w = true end
             end
             local weapons = {"1", "2", "3", "4", "5"}
             game.keypressed(weapons[math.floor(t / 2) % 5 + 1])
-            -- Click where the enemy appears on screen (the game converts back to world coordinates)
-            mouseX, mouseY = worldToScreen(e.x, e.y)
+            -- Lead the target: aim where it will be when the shot arrives (enemies sliding along
+            -- their leash would otherwise dodge every shot), then click there on screen
+            local speed = player.weapons[player.currentWeapon].projectileSpeed
+            local flight = math.sqrt(ex * ex + ey * ey) / speed
+            mouseX, mouseY = worldToScreen(e.x + e.velocity.x * flight, e.y + e.velocity.y * flight)
             game.mousepressed(mouseX, mouseY, 1)
         end
 
