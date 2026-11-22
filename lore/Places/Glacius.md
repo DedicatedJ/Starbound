@@ -3,11 +3,25 @@ type: place
 status: draft
 aliases: []
 in-game:
-  - "src/data/galaxy.lua (glacius)"
+  - src/data/galaxy.lua (glacius)
 kind: planet
 vault: "[[Glacius Vault]]"
+game_kind: location
+game_id: glacius
+order: 4
+location_kind: planet
+map_x: 0.58
+map_y: 0.25
+biomes:
+  - ice
+  - desert
+level_bonus: 2
+has_fragment: true
+puzzle: resonance
+map_text: A frozen world with ringing crystal pylons. The map marks a vault.
 tags:
   - lore/place
+  - game/location
 ---
 
 # Glacius

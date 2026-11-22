@@ -3,10 +3,15 @@ type: item
 status: draft
 aliases: []
 in-game:
-  - "src/entities/loot.lua (alien_essence)"
+  - src/data/pickups.lua
   - src/data/upgrades.lua
+game_kind: pickup
+game_id: alien_essence
+value: 100
+lifetime: 120
 tags:
   - lore/item
+  - game/pickup
 ---
 
 # Alien Essence

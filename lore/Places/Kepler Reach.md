@@ -3,11 +3,23 @@ type: place
 status: draft
 aliases: []
 in-game:
-  - "src/data/galaxy.lua (kepler_reach)"
-  - "src/world/world.lua (tutorial)"
+  - src/data/galaxy.lua (kepler_reach)
+  - src/world/world.lua (tutorial)
 kind: planet
+game_kind: location
+game_id: kepler_reach
+order: 1
+location_kind: planet
+map_x: 0.15
+map_y: 0.55
+biomes:
+  - jungle
+  - desert
+level_bonus: 0
+map_text: "Where you set down with your mother's ship. Overgrown and quiet, mostly."
 tags:
   - lore/place
+  - game/location
 ---
 
 # Kepler Reach

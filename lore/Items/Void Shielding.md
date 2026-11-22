@@ -3,9 +3,17 @@ type: item
 status: draft
 aliases: []
 in-game:
-  - "src/data/upgrades.lua (void_shielding)"
+  - src/data/upgrades.lua
+game_kind: upgrade
+game_id: void_shielding
+order: 3
+upgrade_kind: ship
+cost_salvage: 8
+cost_alien_essence: 4
+shop_text: Hull shielding that can survive the Rift.
 tags:
   - lore/item
+  - game/upgrade
 ---
 
 # Void Shielding
