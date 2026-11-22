@@ -155,6 +155,28 @@ local function runUnitTests()
     p.shield = 50
     Loot.new(0, 0, "shield_crystal"):applyEffect(p)
     check("shield crystal restores shield", p.shield == 75, p.shield)
+
+    -- Seeded generation: same seed and chunk give the same result, a different seed differs
+    local function chunkSignature(chunk)
+        local parts = {chunk.biome}
+        for y = 1, #chunk.tiles do
+            for x = 1, #chunk.tiles[y] do table.insert(parts, chunk.tiles[y][x].type:sub(1, 1)) end
+        end
+        for _, sp in ipairs(chunk.enemySpawns) do table.insert(parts, ("%s@%d,%d"):format(sp.enemyType, sp.x, sp.y)) end
+        return table.concat(parts, "|")
+    end
+    local sigA = chunkSignature(World.new({seed = 12345}):generateChunk(3, -2))
+    local sigB = chunkSignature(World.new({seed = 12345}):generateChunk(3, -2))
+    local sigC = chunkSignature(World.new({seed = 777}):generateChunk(3, -2))
+    check("same seed generates the same chunk", sigA == sigB)
+    check("different seed generates a different chunk", sigA ~= sigC)
+    local spawnChunk = World.new({seed = 12345}):generateChunk(3, -2)
+    local px = World.chunkPixels()
+    local inside = true
+    for _, sp in ipairs(spawnChunk.enemySpawns) do
+        if sp.x < 3 * px or sp.x >= 4 * px or sp.y < -2 * px or sp.y >= -1 * px then inside = false end
+    end
+    check("enemy spawns lie inside their chunk", inside)
 end
 
 function love.load(args)

@@ -2,12 +2,33 @@ local World = {}
 World.__index = World
 
 -- World configuration
+local bit = require("bit")
+
 local config = {
     tileSize = 32,
     chunkSize = 16,
     maxChunks = 3,
     enemySpawnChance = 0.3,
     maxEnemiesPerChunk = 5,
+    -- Biome look and inhabitants; a world picks a subset of these
+    biomes = {
+        jungle = {
+            floor = {0.13, 0.42, 0.18}, alt = {0.11, 0.36, 0.15}, decor = {0.22, 0.58, 0.26},
+            enemies = {"ALIEN_WILDLIFE"}
+        },
+        desert = {
+            floor = {0.72, 0.58, 0.32}, alt = {0.66, 0.52, 0.28}, decor = {0.52, 0.40, 0.21},
+            enemies = {"SPACE_PIRATE", "ALIEN_WILDLIFE"}
+        },
+        ice = {
+            floor = {0.76, 0.82, 0.90}, alt = {0.68, 0.76, 0.86}, decor = {0.58, 0.68, 0.84},
+            enemies = {"SPACE_PIRATE"}
+        },
+        space_station = {
+            floor = {0.30, 0.32, 0.36}, alt = {0.26, 0.28, 0.32}, decor = {0.45, 0.50, 0.55},
+            enemies = {"ROBOTIC_DRONE"}
+        }
+    },
     tutorial = {
         enabled = true,
         steps = {
@@ -60,101 +81,97 @@ local config = {
     }
 }
 
-function World.new()
+function World.new(options)
+    options = options or {}
     local self = setmetatable({}, World)
-    
+
     -- World state
     self.chunks = {}
     self.currentChunk = {x = 0, y = 0}
     self.entities = {}
     self.enemies = {}
     self.loot = {}
-    
-    -- World generation settings
-    self.seed = love.timer.getTime()
+
+    -- The seed drives all procedural generation, so a world can be rebuilt exactly from it
+    self.seed = options.seed or love.math.random(1, 2147483646)
+    self.biomeList = options.biomes or {"jungle", "desert", "ice", "space_station"}
     self.biomeTypes = {
         JUNGLE = "jungle",
         DESERT = "desert",
         ICE = "ice",
         SPACE_STATION = "space_station"
     }
-    
+
     -- Tutorial state
     self.tutorial = {
-        enabled = config.tutorial.enabled,
+        enabled = config.tutorial.enabled and options.tutorial ~= false,
         steps = config.tutorial.steps,
         currentStep = config.tutorial.currentStep,
         stepTimer = config.tutorial.stepTimer,
         completed = config.tutorial.completed
     }
-    
+
     return self
 end
 
+-- Size of one chunk in world pixels
+function World.chunkPixels()
+    return config.tileSize * config.chunkSize
+end
+
+function World.chunkKey(chunkX, chunkY)
+    return chunkX .. "," .. chunkY
+end
+
+-- Random generator that depends only on the world seed and the chunk position
+function World:chunkRandom(chunkX, chunkY)
+    local h = bit.bxor(bit.tobit(self.seed), bit.tobit(chunkX * 19349663), bit.tobit(chunkY * 83492791))
+    h = bit.bxor(h, bit.rshift(h, 13))
+    h = bit.tobit(h * 1274126177)
+    return love.math.newRandomGenerator(bit.band(h, 0x7fffffff) + 1)
+end
+
 function World:generateChunk(chunkX, chunkY)
+    local rng = self:chunkRandom(chunkX, chunkY)
     local chunk = {
+        x = chunkX,
+        y = chunkY,
+        key = World.chunkKey(chunkX, chunkY),
         tiles = {},
         entities = {},
+        enemySpawns = {},
         biome = self:determineBiome(chunkX, chunkY)
     }
-    
-    -- Generate tiles based on biome
+
+    -- Tiles: mostly floor, some alternate floor, a little decoration
     for y = 1, config.chunkSize do
         chunk.tiles[y] = {}
         for x = 1, config.chunkSize do
-            chunk.tiles[y][x] = self:generateTile(x, y, chunk.biome)
+            local r = rng:random()
+            local tileType = (r < 0.08 and "decor") or (r < 0.4 and "alt") or "floor"
+            chunk.tiles[y][x] = {type = tileType, walkable = true, biome = chunk.biome}
         end
     end
-    
-    -- Generate entities based on biome
-    self:generateEntities(chunk)
-    
+
+    -- Enemy spawn points in world coordinates; enemies are created when the chunk becomes active
+    local originX, originY = chunkX * World.chunkPixels(), chunkY * World.chunkPixels()
+    local inhabitants = config.biomes[chunk.biome].enemies
+    while #chunk.enemySpawns < config.maxEnemiesPerChunk and rng:random() < config.enemySpawnChance do
+        table.insert(chunk.enemySpawns, {
+            x = originX + (rng:random(1, config.chunkSize) - 0.5) * config.tileSize,
+            y = originY + (rng:random(1, config.chunkSize) - 0.5) * config.tileSize,
+            enemyType = inhabitants[rng:random(1, #inhabitants)]
+        })
+    end
+
     return chunk
 end
 
 function World:determineBiome(chunkX, chunkY)
-    -- Simple biome determination based on position
-    local value = (chunkX * 7 + chunkY * 13) % 4
-    local biomes = {
-        self.biomeTypes.JUNGLE,
-        self.biomeTypes.DESERT,
-        self.biomeTypes.ICE,
-        self.biomeTypes.SPACE_STATION
-    }
-    return biomes[value + 1]
-end
-
-function World:generateTile(x, y, biome)
-    -- TODO: Implement proper tile generation based on biome
-    return {
-        type = "floor",
-        walkable = true,
-        biome = biome
-    }
-end
-
-function World:generateEntities(chunk)
-    -- Generate enemies based on biome
-    local enemyCount = 0
-    while enemyCount < config.maxEnemiesPerChunk and math.random() < config.enemySpawnChance do
-        local x = math.random(1, config.chunkSize) * config.tileSize
-        local y = math.random(1, config.chunkSize) * config.tileSize
-        
-        -- Determine enemy type based on biome
-        local enemyType
-        if chunk.biome == self.biomeTypes.JUNGLE then
-            enemyType = "ALIEN_WILDLIFE"
-        elseif chunk.biome == self.biomeTypes.SPACE_STATION then
-            enemyType = "ROBOTIC_DRONE"
-        else
-            enemyType = "SPACE_PIRATE"
-        end
-        
-        local enemy = require("src.entities.enemy").new(x, y, enemyType)
-        table.insert(chunk.entities, enemy)
-        table.insert(self.enemies, enemy)
-        enemyCount = enemyCount + 1
-    end
+    -- Smooth noise so neighbouring chunks tend to share a biome
+    local n = love.math.noise(chunkX * 0.3 + (self.seed % 1000) + 0.37, chunkY * 0.3 + (self.seed % 997) + 0.61)
+    local index = math.min(#self.biomeList, math.floor(n * #self.biomeList) + 1)
+    return self.biomeList[index]
 end
 
 function World:update(dt)
