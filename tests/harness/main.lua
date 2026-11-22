@@ -468,6 +468,7 @@ local function runUnitTests()
     local v = r.vault
     v:useDoor()
     check("reading the glyphs plays the sequence", v.flashQueue ~= nil and #r.notes == 1)
+    check("the vault door reads the Solis key on first touch", r.notes[1]:find("reads your key", 1, true) ~= nil, r.notes[1])
     v:activatePylon(v.sequence[1])
     check("pylons ignore input during playback", v.progress == 0)
     for _ = 1, 400 do vw:update(DT) end
@@ -537,6 +538,18 @@ local function runUnitTests()
     local picked
     d:start(Story.arkadia, {flags = {}, onDone = function(choice) picked = choice end})
     d:skip()
+    local function storyHas(lines, needle)
+        for _, line in ipairs(lines) do
+            if line.text:find(needle, 1, true) then return true end
+        end
+        return false
+    end
+    check("Mara's recording names the heart and the helm", storyHas(Story.arkadia, "The helm will answer you"))
+    check("Quill's truth explains the two keepers", storyHas(Story.quillTruth, "two keepers"))
+    check("Varro knows only a Solis opens the vaults", storyHas(Story.varroContact, "only open for a Solis"))
+    check("refusing Varro has a payoff at the Rift and in two endings",
+        #Story.riftVarro == 1 and Story.endings.dawn.defiedVarro ~= nil and Story.endings.legacy.defiedVarro ~= nil
+        and Story.endings.tyrant.defiedVarro == nil)
     check("only the default ending is offered without flags", d.choices and #d.choices == 1 and d.choices[1].id == "dawn")
     d:advance()
     check("advancing cannot skip a choice", d.active)
@@ -902,6 +915,13 @@ local function step()
         check("choosing shows the ending", state() == "ending" and upvalue(drawEnding, "endingId") == "dawn", state())
         game.keypressed("return")
         check("Enter returns to the title screen after the ending", state() == "menu", state())
+        -- Refusing Varro adds his fleet to the ending text (and it still draws)
+        getSession().flags.defied_varro = true
+        showEnding("dawn")
+        local okDraw, errDraw = pcall(drawEnding)
+        check("an ending draws with Varro's fleet line after refusing him", okDraw, errDraw)
+        game.keypressed("return")
+        getSession().flags.defied_varro = nil
         
         -- Bad save files fail cleanly
         local Save = require("src.save.save")

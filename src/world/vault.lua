@@ -71,13 +71,21 @@ function Vault:useDoor()
         return
     elseif self.solved then
         self:collect()
-    elseif self.puzzle == "sequence" then
+        return
+    end
+    -- The first touch: the door checks for the Solis key, then shows its puzzle
+    local prefix = ""
+    if not self.keyRead then
+        self.keyRead = true
+        prefix = "The door reads your key and wakes.  "
+    end
+    if self.puzzle == "sequence" then
         self:startSequence()
-        self.notify(HINTS.sequence)
+        self.notify(prefix .. HINTS.sequence)
     elseif self.puzzle == "plates" then
-        self.notify(HINTS.plates .. ("  The door reads: %d."):format(self.target))
+        self.notify(prefix .. HINTS.plates .. ("  The door reads: %d."):format(self.target))
     else
-        self.notify(HINTS[self.puzzle])
+        self.notify(prefix .. HINTS[self.puzzle])
     end
 end
 

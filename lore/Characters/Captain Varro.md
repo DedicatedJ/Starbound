@@ -30,4 +30,4 @@ He followed [[Mara Solis]] to [[Cinder]] and watched her open the vault. That ta
 His deal is honest about what he wants: the coordinates, and later the ship. He can steer [[The Arkadia]] once it is awake, but he needs the player to wake it ([[The Heart and the Helm]]).
 
 ## If the player refuses
-He does not give up. His fleet shadows the player to the edge of [[The Rift]], planning to take the ship once it wakes. In [[Dawn of Arkadia]] and [[The Keeper's Child]], the waking Arkadia scatters his fleet. (Not in the game yet; see [[Game Changes Needed]].)
+He does not give up. His fleet shadows the player to the edge of [[The Rift]], planning to take the ship once it wakes. In [[Dawn of Arkadia]] and [[The Keeper's Child]], the waking Arkadia scatters his fleet.
