@@ -1,6 +1,6 @@
 ---
 type: document
-status: idea
+status: canon
 aliases: []
 in-game: []
 log: 18

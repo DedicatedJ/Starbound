@@ -1,6 +1,6 @@
 ---
 type: document
-status: draft
+status: canon
 aliases: []
 in-game:
   - "src/data/story.lua (logs.glacius)"
