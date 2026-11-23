@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases: []
 in-game:
   - src/data/pickups.lua
@@ -18,7 +18,7 @@ tags:
 
 A material dropped by creatures, traded with [[Quill]] alongside salvage for upgrades such as [[Void Shielding]].
 
-## What it is (draft)
+## What it is
 The residue of [[The Loom]]. When the Makers healed worlds, a trace of the making stayed in everything that grew there, and living things concentrate it. It glows when a creature dies because it is coming loose ([[Mara's Log 47]]).
 
 Because it is the stuff of making, it is the only thing that resists unmaking. That is why [[Void Shielding]] needs it, and why [[Quill]]'s terminal pays for it.

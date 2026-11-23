@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases: []
 in-game:
   - src/data/upgrades.lua
@@ -20,8 +20,5 @@ tags:
 
 Hull shielding that lets a ship survive [[The Rift]]. Sold by [[Quill]] at [[Drift Station]]. Required to enter the Rift; the [[Ship Computer]] reports it holding on arrival.
 
-## How it works (draft)
+## How it works
 Hull plating woven through with [[Alien Essence]]. Essence is the residue of making, so it resists the Void's unmaking long enough for a ship to cross [[The Rift]].
-
-## Open
-How it works against [[The Void]].

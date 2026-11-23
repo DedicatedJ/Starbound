@@ -1,6 +1,6 @@
 ---
 type: document
-status: draft
+status: canon
 aliases:
   - "The logs"
   - "Mara's journal"

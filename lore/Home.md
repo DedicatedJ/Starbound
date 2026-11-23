@@ -34,7 +34,7 @@ Start here. Every lore note is one thing (a person, place, item, event...) filed
   - `status`: `canon` (approved), `draft` (written but not approved), `idea` (not written into anything yet)
   - `in-game`: where the game uses it (file and table), empty if the game does not use it yet
   - `aliases`, `tags`
-- **Everything is `draft` for now.** All of this was drafted from the README premise and has not been approved. Promote a note to `canon` once you sign off on it.
+- **The story is `canon`.** Every character, place, item, ending, concept and document note was reviewed and approved. The `Mechanics` stat notes stay `draft` until the balance is play-tested. New notes start as `draft` or `idea` and are promoted once approved.
 - **Lore leads, the game follows.** Change the lore here first, then update the matching file under `src/data/`. The `in-game` property tells you which file.
 - **The vault is the source of the game's numbers.** A note with a `game_kind` property (weapon, enemy, pickup, upgrade, location, balance) is game data: its other properties are the stats. One note holds both the lore (body) and the numbers (properties), so the [[Void Beam]]'s story and its damage are the same note.
   - Balance in the `Balance/` tables or in a note's properties, then run `python tools/gen_data.py` to write `src/data/*.lua`. With the git hook on (`git config core.hooksPath .githooks`) this happens automatically on commit.

@@ -1,6 +1,6 @@
 ---
 type: character
-status: draft
+status: canon
 aliases:
   - Varro
 in-game:
@@ -24,7 +24,7 @@ Pirate captain who leads [[Varro's Crews]]. Claims [[Cinder]] as his: "my rock, 
 ## Personality
 Blunt, mocking, transactional. Keeps his word when it profits him ("My crews will not touch you unless you start it").
 
-## What he knows, and why he wants the player (draft)
+## What he knows, and why he wants the player
 He followed [[Mara Solis]] to [[Cinder]] and watched her open the vault. That taught him the rule: only a Solis with the key can open those doors, and only a Solis can wake the ship. He cannot open "his" vault, so he took the planet and waited ten years for another Solis to show up.
 
 His deal is honest about what he wants: the coordinates, and later the ship. He can steer [[The Arkadia]] once it is awake, but he needs the player to wake it ([[The Heart and the Helm]]).
@@ -32,7 +32,7 @@ His deal is honest about what he wants: the coordinates, and later the ship. He 
 ## If the player refuses
 He does not give up. His fleet shadows the player to the edge of [[The Rift]], planning to take the ship once it wakes. In [[Dawn of Arkadia]] and [[The Keeper's Child]], the waking Arkadia scatters his fleet.
 
-## Why he wants the Arkadia (draft)
+## Why he wants the Arkadia
 Varro lost his world, [[Corvane]], in the [[Void Collapse]], while the powers that could have saved it did nothing. He does not believe in healing. To him, healing the dead worlds just hands them back to the same people who let them die, and the next disaster will find them just as helpless.
 
 He wants the Arkadia's unmaking so that nobody can ever abandon his people again. He is not lying when he calls the deal protection; he means it. That is what makes him dangerous, and what makes [[Varro's Crown]] a tragedy: he becomes the power that decides which worlds live.

@@ -1,6 +1,6 @@
 ---
 type: creature
-status: draft
+status: canon
 aliases:
   - Wildlife
 in-game:

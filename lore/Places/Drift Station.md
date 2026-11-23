@@ -1,6 +1,6 @@
 ---
 type: place
-status: draft
+status: canon
 aliases: []
 in-game:
   - src/data/galaxy.lua (drift_station)
@@ -27,7 +27,7 @@ tags:
 A trading hub run by [[Quill]]. The safe home base: the only place to refuel, and where the ship is towed if it runs out of fuel.
 
 ## What happens here
-- Quill explains the [[Map Fragments]] and, later, reveals that [[Mara Solis]] may be alive.
+- Quill explains the [[Map Fragments]] and, later, reveals that [[Mara Solis]] is alive.
 - Quill's terminal sells [[Jump Drive Mk II]], [[Void Shielding]] and gear upgrades for salvage and [[Alien Essence]].
 
 ## Open

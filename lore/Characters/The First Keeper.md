@@ -1,6 +1,6 @@
 ---
 type: character
-status: idea
+status: canon
 aliases:
   - "The old keeper"
 in-game: []
@@ -12,7 +12,7 @@ tags:
 
 The Maker who went into [[The Arkadia]]'s heart at the end of [[The Unmaking]] and held [[The Rift]] shut, alone, for longer than anyone can count.
 
-## Story (draft)
+## Story
 - [[Quill]] was their attendant drone. It tended them in the heart for ages.
 - One generation before the game, the First Keeper finally died. The Rift opened, and the [[Void Collapse]] began.
 - Quill, its purpose gone, drifted out of the Rift broken. [[Mara Solis]] found it.

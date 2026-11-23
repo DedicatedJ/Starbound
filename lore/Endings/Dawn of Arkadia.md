@@ -1,6 +1,6 @@
 ---
 type: ending
-status: draft
+status: canon
 aliases: []
 in-game:
   - "src/data/story.lua (endings.dawn)"
@@ -19,5 +19,5 @@ The Arkadia wakes and the Rift folds shut behind it. World by world, the dead pl
 - The galaxy heals.
 - [[Mara Solis]] stays in the core.
 
-## How it works (draft)
+## How it works
 The player takes the helm; Mara stays at the heart, the station she chose ten years ago ([[The Heart and the Helm]]). It is bittersweet on purpose: the galaxy heals and she does not come home. If the player refused [[Captain Varro]], his fleet waiting at the Rift's edge scatters when the ship wakes.

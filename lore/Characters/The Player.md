@@ -1,6 +1,6 @@
 ---
 type: character
-status: draft
+status: canon
 aliases:
   - Little Solis
   - The Solis brat
@@ -24,19 +24,19 @@ The child of [[Mara Solis]]. Unnamed so far. Quill calls them "little Solis"; [[
 - The Arkadia recognizes their "Solis lineage" and lets them aboard.
 - Their final choice decides the ending: [[Dawn of Arkadia]], [[The Keeper's Child]] or [[Varro's Crown]].
 
-## Where they have been (draft)
-Mara had them raised under another name on a quiet world off her map, so that [[Captain Varro]] could not use them. They may not have known they were a Solis until the courier drone found them. Varro's "finally crawled out of hiding" is literal.
+## Where they have been
+Mara had them raised under another name on a quiet world off her map, so that [[Captain Varro]] could not use them. They did not know they were a Solis until the courier drone found them. Varro's "finally crawled out of hiding" is literal.
 
 They matter because they carry the bloodline: only a Solis with the [[Access Key]] can open the vaults and wake [[The Arkadia]] ([[The Heart and the Helm]]).
 
-## Childhood (draft)
+## Childhood
 Raised by [[Tamsin Hale]] on a quiet world off the map, under a name Tamsin chose, believing their mother was a spacer who died. They learn they are a Solis the morning the courier drone arrives.
 
-## The other parent (draft option)
-Their other parent died in the first year of the [[Void Collapse]], on one of the first worlds lost. That loss is what sent Mara looking for a way to stop it. (A suggestion; it gives Mara a reason and the player a second thread to the Collapse.)
+## The other parent
+Their other parent died in the first year of the [[Void Collapse]], on one of the first worlds lost. That loss is what sent Mara looking for a way to stop it, and it gives the player a second thread to the Collapse.
 
 ## The two names
 In [[The Keeper's Child]], the player takes Mara's place at the heart. Which name do they give the ship when it asks who is keeping it? A one-line choice there would land the whole arc.
 
 ## Open
-Their birth name, the name they grew up with, age, gender, appearance, the world they were hidden on, their other parent ([[Open Questions]] 1, 3). The two names are a story hook: which one do they choose at the end?
+Their birth name, the name they grew up with, age, gender, appearance, the world they were hidden on, and the other parent's name ([[Open Questions]] 1). The two names are a story hook: which one do they choose at the end?

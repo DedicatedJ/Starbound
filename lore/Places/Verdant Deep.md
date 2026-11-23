@@ -1,6 +1,6 @@
 ---
 type: place
-status: draft
+status: canon
 aliases: []
 in-game:
   - src/data/galaxy.lua (verdant_deep)

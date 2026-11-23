@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases:
   - Fragments
   - Star map fragments

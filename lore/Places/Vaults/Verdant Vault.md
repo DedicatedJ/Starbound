@@ -1,6 +1,6 @@
 ---
 type: vault
-status: draft
+status: canon
 aliases: []
 in-game:
   - "src/world/vault.lua (plates)"
@@ -21,5 +21,5 @@ Wall glyph: "the stones must weigh exactly what the door asks."
 ## Lore
 The last fragment. Mara wrote her final log here, already planning to hold the Rift shut herself.
 
-## Who built it (draft)
-[[The Makers]] built it as a waystation; the glyphs are theirs. Mara re-tuned its lock so the door opens only for the Solis [[Access Key]], then sealed a fragment inside. [[The Lost Survey Team]] may have been looking for it.
+## Who built it
+[[The Makers]] built it as a waystation; the glyphs are theirs. Mara re-tuned its lock so the door opens only for the Solis [[Access Key]], then sealed a fragment inside. [[The Lost Survey Team]] found it early in the Collapse, but the door had been sealed and dead since [[The Unmaking]], and they could not open it.

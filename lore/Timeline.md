@@ -14,10 +14,11 @@ Dates are relative to the start of the game (year 0). Nothing before that has an
 | Long ago | [[The Unmaking]]: the Loom is used as a weapon and [[The Void]] first opens; [[The Last Captain]] binds the ship to their line; [[The First Keeper]] holds the heart | The Makers end |
 | Generations | The Solis family carries the [[Access Key]] as an heirloom | They do not know what it opens |
 | One generation before | [[The First Keeper]] dies; the [[Void Collapse]] swallows half the settled worlds, [[Corvane]] among the first; [[Quill]] drifts out of [[The Rift]] | Varro escapes Corvane with a few thousand survivors |
-| Early Collapse | [[The Lost Survey Team]] vanishes on [[Verdant Deep]] | |
+| First year of the Collapse | The player's other parent dies on one of the first worlds lost | The loss that sends [[Mara Solis]] looking ([[The Player]]) |
+| Early Collapse | [[The Lost Survey Team]] finds the [[Verdant Vault]] sealed and vanishes on [[Verdant Deep]] | Mara finds their camp later ([[Mara's Log 47]]) |
 | Unknown | Spacers tell stories of a ship that can heal dead worlds | Memory of the Makers |
-| Before year -10 | [[Mara Solis]] finds [[Quill]] drifting out of the Rift and learns the Arkadia is real | |
-| Before year -10 | [[Captain Varro]] starts following Mara | |
+| Before year -10 | [[Mara Solis]] finds [[Quill]] drifting out of the Rift and learns the Arkadia is real | Quill later recognizes her heirloom as the key ([[Mara's Log 7]]) |
+| Before year -10 | [[Captain Varro]] offers to partner with Mara; she refuses and he follows her | [[Mara's Log 18]] |
 | About year -10 | [[Tamsin Hale]] takes in the player under another name; Mara leaves without saying goodbye | [[Mara's Log 1]] |
 | Year -10 | Mara finds the Makers' last starchart and hears the [[Glacius]] crystals | [[Mara's Log 26]], [[Mara's Log 38]] |
 | Year -10 | Mara hides the [[Map Fragments]]: [[Mara's Log 31]] on [[Cinder]] (Varro watches), [[Mara's Log 44]] on [[Glacius]], [[Mara's Log 52]] on [[Verdant Deep]] | Log numbers give the order |

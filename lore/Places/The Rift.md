@@ -1,6 +1,6 @@
 ---
 type: place
-status: draft
+status: canon
 aliases: []
 in-game:
   - src/data/galaxy.lua (the_rift)
@@ -25,14 +25,14 @@ tags:
 
 # The Rift
 
-The scar left by the [[Void Collapse]]. [[The Arkadia]] drifts somewhere inside.
+The wound first torn in [[The Unmaking]] and reopened by the [[Void Collapse]]. [[The Arkadia]] drifts somewhere inside.
 
 ## What we know
 - An unshielded hull is torn apart here; entering needs [[Void Shielding]] and all three [[Map Fragments]].
 - Heavy [[Drones]] resistance guards the Arkadia.
 - [[Mara Solis]] holds the Rift shut from the Arkadia's core. If no one holds it, the Rift keeps widening ([[Mara's Log 52]]).
 
-## Now (draft)
-Mara has held the Rift shut from [[The Arkadia]]'s heart for ten years, which stopped the [[Void Collapse]] from spreading. As she weakens it is widening again. If no one takes the helm or the heart, a second Collapse follows.
+## Now
+Mara has held the Rift shut from [[The Arkadia]]'s heart for ten years, which stopped the [[Void Collapse]] from spreading. As she weakens it is widening again. If no one relieves her at the heart, a second Collapse follows.
 
 The [[Drones]] here are the Arkadia's own defenses. If the player refused [[Captain Varro]], his fleet waits at the Rift's edge.

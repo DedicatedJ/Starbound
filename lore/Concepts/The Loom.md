@@ -1,6 +1,6 @@
 ---
 type: concept
-status: draft
+status: canon
 aliases:
   - "The engine"
   - "The Arkadia's engine"
@@ -24,4 +24,4 @@ It also runs the other way. Turned to unmaking, the Loom takes worlds apart and 
 The Makers learned what the Loom could do the hard way ([[The Unmaking]]). Afterwards [[The Last Captain]] bound the ship so that only their own line, carrying their key, could ever wake it again ([[Access Key]], [[The Heart and the Helm]]).
 
 ## Why it needs a keeper at the heart
-Unmaking leaves a wound that wants to keep spreading. While the Loom works, someone at the heart has to hold that wound, [[The Rift]], shut. The keeper is the cost of every healing.
+Unmaking leaves a wound that wants to keep spreading. Someone at the heart has to hold that wound, [[The Rift]], shut at all times, whether the ship is dark or awake. The Loom can only heal while someone is there, so the keeper is the cost of every healing.

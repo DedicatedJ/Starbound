@@ -1,6 +1,6 @@
 ---
 type: concept
-status: draft
+status: canon
 aliases:
   - "The first Void"
   - "The Makers' war"
@@ -13,7 +13,7 @@ tags:
 
 The disaster that ended [[The Makers]] and first opened [[The Rift]], long before anyone alive.
 
-## What happened (draft)
+## What happened
 1. The Makers used [[The Loom]] to heal and settle worlds. For generations, [[The Arkadia]] was their great ship of making.
 2. A faction of Makers seized the helm and turned the Loom to unmaking, to win a war. Whole worlds came apart. The wound they tore in space became [[The Void]].
 3. [[The Last Captain]] took the helm back. [[The First Keeper]] went into the heart and held the wound shut. The Arkadia went dark around them, with the Rift sealed inside it.
