@@ -1,6 +1,6 @@
 ---
 type: vault
-status: draft
+status: canon
 aliases: []
 in-game:
   - "src/world/vault.lua (resonance)"
@@ -21,8 +21,8 @@ Wall glyph: "strike the crystals until every one of them sings."
 ## Lore
 The crystals of Glacius remember sound. Mara tuned this vault so only someone patient could open it.
 
-## Who built it (draft)
-[[The Makers]] built it as a waystation; the glyphs are theirs. Mara re-tuned its lock so the door opens only for the Solis [[Access Key]], then sealed a fragment inside. The crystals that "remember sound" may be the Makers' own record.
+## Who built it
+[[The Makers]] built it as a waystation; the glyphs are theirs. Mara re-tuned its lock so the door opens only for the Solis [[Access Key]], then sealed a fragment inside. The crystals that "remember sound" are the Makers' own record ([[Glacius]]).
 
-## The record (draft)
+## The record
 Making every crystal sing plays a fragment of the Makers' last voices. The game shows only the glyph hint today; a line of their voices when the vault opens would carry this on screen.
