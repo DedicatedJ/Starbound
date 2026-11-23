@@ -36,7 +36,7 @@ Mara's orders: do not follow me, do not lead anyone to my child, and if my ship 
 ## What Quill remembers (draft)
 - Quill was the attendant of [[The First Keeper]], tending them in [[The Arkadia]]'s heart for ages.
 - It was there when the First Keeper died, the moment the [[Void Collapse]] began. Quill has never said this out loud. It blames itself for not being able to hold the door.
-- It remembers [[The Last Captain]]'s face. "You have her eyes" may mean more than Mara.
+- It remembers [[The Last Captain]]'s face.
 - The Rift [[Drones]] are its siblings: the same make, still following orders it woke up from.
 
 ## Its conflict

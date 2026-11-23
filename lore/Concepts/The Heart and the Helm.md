@@ -1,10 +1,11 @@
 ---
 type: concept
-status: draft
+status: canon
 aliases:
   - Heart and helm
   - The two-keeper rule
-in-game: []
+in-game:
+  - "src/data/story.lua (Mara's recording: the helm will answer you, the heart is mine)"
 tags:
   - lore/concept
 ---
@@ -15,7 +16,7 @@ The rule at the center of [[The Arkadia]]: it takes two people to heal the galax
 
 | Station | What it does | Who can take it |
 |---|---|---|
-| **The heart** (the core) | Holds [[The Rift]] shut while the ship works. Whoever is there is sealed in, half asleep, for as long as the ship heals. | Anyone willing |
+| **The heart** (the core) | Holds [[The Rift]] shut at all times, whether the ship is dark or awake. The ship can only heal while someone is there. Whoever takes it is sealed in, half asleep, until someone relieves them. | Anyone willing |
 | **The helm** | Wakes the ship, and sets and changes its course | Waking: only the captain's bloodline carrying the [[Access Key]]. Steering an awake ship: anyone |
 
 ## Consequences

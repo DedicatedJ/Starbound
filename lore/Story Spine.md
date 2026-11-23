@@ -1,6 +1,6 @@
 ---
 type: index
-status: draft
+status: canon
 tags:
   - lore/index
 ---
@@ -10,8 +10,7 @@ tags:
 The whole story in order, with the plot holes closed. Everything already in the game still holds; this fills the gaps between those facts. Each step links to the notes that carry the detail. What the game itself needs to say differently is in [[Game Changes Needed]].
 
 ## Before the game
-0. **The Unmaking.** The Makers' great ship, [[The Arkadia]], carries [[The Loom]], which weaves dead worlds back to life. Some of them turn it to unmaking in a war, and the wound they tear becomes [[The Void]]. [[The Last Captain]] takes the helm back and [[The First Keeper]] holds the wound shut from the heart. The Makers do not recover. ([[The Unmaking]])
-1. **The Makers build the Arkadia.** A ship that can heal dead worlds, and a chain of vaults across the sector marked in their glyphs. The ship is bound to its last captain's bloodline: only that line, carrying the captain's key, can wake it. Then the Makers vanish. ([[The Makers]], [[The Arkadia]])
+1. **The Makers and the Unmaking.** [[The Makers]] build [[The Arkadia]], a great ship carrying [[The Loom]], which weaves dead worlds back to life, and a chain of vaults across the sector marked in their glyphs. Some of them turn the Loom to unmaking in a war, and the wound they tear becomes [[The Void]]. [[The Last Captain]] takes the helm back and binds the ship to their bloodline: only that line, carrying the captain's key, can wake it. [[The First Keeper]] holds the wound shut from the heart. The Makers do not recover. ([[The Unmaking]])
 2. **The key becomes an heirloom.** The Solis family carries it for generations without knowing what it opens. ([[Access Key]])
 3. **The Void Collapse.** After ages, [[The First Keeper]] dies. The heart is empty, the old wound breaks open, and half the settled worlds go dark, [[Corvane]] among the first. [[Quill]], the keeper's attendant, drifts out of [[The Rift]] broken. ([[Void Collapse]])
 4. **Mara finds Quill.** Exploring the Rift's edge, [[Mara Solis]] recovers a broken drone drifting out of it: [[Quill]], one of the Arkadia's own drones, its memory mostly gone. Quill remembers the ship, the vaults, and the shape of the key. Mara realizes the myth is real. Later, Quill recognizes the heirloom around her neck as the key ([[Mara's Log 7]]).
