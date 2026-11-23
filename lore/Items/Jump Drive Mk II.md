@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases: []
 in-game:
   - src/data/upgrades.lua

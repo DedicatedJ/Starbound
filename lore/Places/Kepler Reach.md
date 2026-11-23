@@ -34,4 +34,4 @@ Where [[The Player]] sets down in [[Mara's Ship]]. Overgrown and quiet, mostly. 
 [[Alien Wildlife]] in the jungle; pirates from [[Varro's Crews]] in the desert.
 
 ## Why here
-It was Mara's first camp when she started searching, and the last stop programmed into her ship. When the ship came home from [[The Arkadia]] it went to the last place it knew, away from [[Captain Varro]]'s worlds and quiet enough for a newcomer to learn to fight. The ship waits for the player there.
+It was Mara's first camp when she started searching, and the last stop programmed into her ship. When the ship came home from [[The Arkadia]] it went to the last place it knew, away from [[Captain Varro]]'s worlds and quiet enough for a newcomer to learn to fight. It brought the player here and waits while they learn to fight.

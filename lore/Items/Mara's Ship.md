@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases:
   - Your ship
   - Mother's ship
@@ -18,7 +18,7 @@ tags:
 
 Upgraded at [[Drift Station]] with [[Jump Drive Mk II]], expanded fuel tanks and [[Void Shielding]].
 
-## How it came back (draft)
+## How it came back
 Mara flew it into [[The Rift]] and docked it to [[The Arkadia]], where it sat for ten years. When her strength began to fail she launched it home, empty, carrying the [[Access Key]] and the [[Star Map]]. Its courier drone found her child, and the [[Ship Computer]] flew them to [[Kepler Reach]], the last stop it knew. Only three words of her message survived the Void: *Find the Arkadia*.
 
 ## Open

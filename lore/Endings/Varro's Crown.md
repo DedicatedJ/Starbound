@@ -1,6 +1,6 @@
 ---
 type: ending
-status: draft
+status: canon
 aliases: []
 in-game:
   - "src/data/story.lua (endings.tyrant)"
@@ -20,8 +20,8 @@ Varro's fleet arrives within the hour. He turns the Arkadia's engines from heali
 - The Arkadia becomes a weapon.
 - [[Mara Solis]] stays in the core, forgotten.
 
-## How it works (draft)
+## How it works
 The player wakes the ship at the helm, then hands the helm to Varro. Waking needs a Solis; steering does not ([[The Heart and the Helm]]). That is why Varro made the deal instead of just waiting.
 
-## Why it is a tragedy (draft)
+## Why it is a tragedy
 Varro set out to make sure no world was ever abandoned again ([[Corvane]]). With [[The Loom]]'s unmaking he becomes the one deciding which worlds survive. He does not think he has changed.

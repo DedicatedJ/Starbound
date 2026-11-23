@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases:
   - Mara's star map
   - The map
@@ -17,7 +17,7 @@ tags:
 
 The game's title, *The Last Starchart*, refers to this map.
 
-## Where it came from (draft)
+## Where it came from
 [[Mara Solis]] copied it by hand from the Makers' last starchart, found in a Maker derelict at the Rift's edge: every world they ever healed, and one point in the dark where [[The Arkadia]] went to sleep ([[Mara's Log 26]]). She cut her copy into the [[Map Fragments]].
 
 That makes the game's title literal: Mara's map is a copy of *the last starchart*.

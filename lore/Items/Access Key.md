@@ -1,6 +1,6 @@
 ---
 type: item
-status: draft
+status: canon
 aliases: []
 in-game:
   - "src/data/story.lua (intro, arkadia)"
@@ -12,7 +12,7 @@ tags:
 
 The key to [[Mara's Ship]], delivered to [[The Player]] by a courier drone along with the [[Star Map]]. [[The Arkadia]] also recognizes it ("Access key recognised. Solis lineage confirmed.").
 
-## What it really is (draft)
+## What it really is
 A Solis family heirloom: the key of [[The Arkadia]]'s last captain, carried for generations by people who did not know what it opened. Mara used it as her own ship's key. It works only with the bloodline, so it is useless to [[Captain Varro]] on its own.
 
 What it opens:
