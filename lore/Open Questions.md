@@ -13,7 +13,7 @@ Holes the current lore does not answer. Each one links to the notes it affects. 
 ## Characters
 1. **What is the player's name?** Quill calls them "little Solis" and Varro "the Solis brat". Gender, age and where they lived for ten years are all unknown. ([[The Player]])
 2. ~~**Why did Mara leave without saying goodbye?**~~ *Answered in the [[Story Spine]].* [[Mara's Log 44]] apologizes for it but never explains. ([[Mara Solis]])
-3. **Who is the player's other parent?** *Draft option in [[The Player]]: died early in the Collapse.* Never mentioned. ([[The Player]], [[Mara Solis]])
+3. ~~**Who is the player's other parent?**~~ *Answered in [[The Player]]: died in the first year of the Collapse; that loss sent Mara looking.* Their name is still open. ([[The Player]], [[Mara Solis]])
 4. ~~**What is Quill, really?**~~ *Answered in the [[Story Spine]].* Described as "an old drone". Is Quill related to the hostile [[Drones]]? Who built Quill, and why is it loyal to Mara? ([[Quill]])
 5. ~~**How does Varro know about the Arkadia and the Solis family?**~~ *Answered in the [[Story Spine]].* He knows the player by name and expects them to find coordinates. ([[Captain Varro]])
 

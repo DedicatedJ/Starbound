@@ -1,6 +1,6 @@
 ---
 type: character
-status: draft
+status: canon
 aliases:
   - Mara
   - Mother
@@ -22,7 +22,7 @@ An explorer and the mother of [[The Player]]. Ten years before the game she flew
 - She split the Arkadia's coordinates into three [[Map Fragments]] and sealed them in vaults on [[Cinder]], [[Glacius]] and [[Verdant Deep]], leaving a log with each.
 - She trusted [[Quill]] with her secrets, including the truth about what she planned to do.
 - She reached the Arkadia, found it could not heal the galaxy unless someone held [[The Rift]] shut from its core, and took that place herself ([[Mara's Final Recording]]).
-- She may still be alive inside the core.
+- She is alive in the heart, and failing.
 - Her ship, [[Mara's Ship]], and her [[Star Map]] were delivered to her child at the start of the game.
 
 ## Personality
@@ -36,7 +36,8 @@ Driven, secretive, protective. She hides things "right under their noses" and tu
 ## Appears in
 [[Mara's Log 31]], [[Mara's Log 44]], [[Mara's Log 52]], [[Mara's Final Recording]], all three endings.
 
-## The rest of her story (draft)
+## The rest of her story
+- Her partner, the player's other parent, died in the first year of the [[Void Collapse]]. That loss is what sent her looking for a way to stop it ([[The Player]]).
 - She learned [[The Arkadia]] was real from [[Quill]], a drone she pulled out of the Rift's edge, and realized the Solis heirloom she wore was its [[Access Key]].
 - She hid her child under another name and left without saying goodbye so no trail would lead [[Captain Varro]] to them. That is the apology in [[Mara's Log 44]].
 - She re-tuned three of [[The Makers]]' vaults so only the key opens them, which is why the fragments were safe even on Varro's own planet.
@@ -46,4 +47,4 @@ Driven, secretive, protective. She hides things "right under their noses" and tu
 See the [[Story Spine]].
 
 ## Open
-Who the player's other parent is ([[Open Questions]] 3).
+The other parent's name, and which world they died on.
